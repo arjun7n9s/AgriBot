@@ -9,14 +9,9 @@ __pycache__/
 *.bak
 *.blend1
 
-# Third-party CAD (HowToMechatronics SCARA). The licence for redistributing these
-# files is unknown, so they stay local until that is cleared.
-# See docs/assets.md, "Third-party sources".
-media/scara-arm/
-
-# Meshes derived from that third-party CAD stay local for the same reason
-# (renders of it are fine and are committed).
-sim/agribot_description/meshes/scara/
+# Original download archives of the SCARA base design. Their contents are
+# committed unpacked under media/scara-arm/, so the zips are duplicates.
+media/scara-arm/**/*.zip
 
 # Scratch output from asset tools
 build/

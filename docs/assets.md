@@ -10,7 +10,7 @@ Every asset comes from a script in `tools/`. Change the script and rebuild; do n
 
 | Asset | Package path | Source of truth |
 | --- | --- | --- |
-| SCARA arm, 5 links + stock gripper | `sim/agribot_description/meshes/scara/` (local only, see below) | HowToMechatronics STEP, split by `tools/scara/extract_links.py` |
+| SCARA arm, 5 links + stock gripper | `sim/agribot_description/meshes/scara/` | HowToMechatronics STEP, split by `tools/scara/extract_links.py` |
 | V-capture tomato cutter (concept v0) | `sim/agribot_description/meshes/cutter/` | `tools/blender/build_cutter.py`, from [scara-redesign.md](scara-redesign.md) section 3 |
 | Rover body, wheels, masts, crate | `sim/agribot_description/meshes/rover/` | `tools/blender/build_rover.py`, from the measurements in [work-plan.md](work-plan.md) section 1 |
 | Robot description (URDF/xacro) | `sim/agribot_description/urdf/` | `tools/description/write_urdf.py` |
@@ -61,14 +61,12 @@ The STEP model is read with OpenCascade. Each part is assigned to a link and mov
 
 **Updated value:** the Z stroke was quoted as roughly 200 mm in [scara-redesign.md](scara-redesign.md). The CAD gives 249 mm.
 
-### Third-party sources
+### Source CAD
 
-The HowToMechatronics CAD in `media/scara-arm/`, and the meshes generated from it, are **not committed**, because their redistribution licence is unknown. The generator scripts are committed, so anyone with the CAD can rebuild them.
+The SCARA base design is adapted from HowToMechatronics (see [CREDITS.md](../CREDITS.md)).
 
-The robot description references these meshes, so on a fresh clone the SCARA links have no visuals until you rebuild them:
-
-1. Put the HowToMechatronics download in `media/scara-arm/` (layout in [internal/scara-arm-file-inventory.md](../internal/scara-arm-file-inventory.md)).
-2. Run the two SCARA steps in "Rebuilding" below.
+- **Committed:** the unpacked CAD in `media/scara-arm/` (layout in [internal/scara-arm-file-inventory.md](../internal/scara-arm-file-inventory.md)) and the meshes generated from it.
+- **Not committed:** the original download zips, because they duplicate the unpacked files.
 
 ## Cutter (concept v0)
 

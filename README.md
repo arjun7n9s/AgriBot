@@ -34,7 +34,7 @@ tools/
   scara/                  STEP -> URDF links (OpenCascade)
   blender/                procedural assets and renders (Blender 5.1)
   description/            URDF generator and a small FK/IK helper
-media/                    board photos and models; third-party SCARA CAD (local only)
+media/                    board photos and models; SCARA base CAD (see CREDITS.md)
 internal/                 working notes and photo cross-checks
 ```
 
@@ -67,12 +67,10 @@ cd ~/agribot_ws && colcon build && source install/setup.bash
 ros2 launch agribot_description display.launch.py tool:=cutter mast_pin:=2
 ```
 
-## Third-party CAD
+## Credits
 
-The SCARA is the HowToMechatronics design. Its CAD files (`media/scara-arm/`), and the meshes generated from them, are kept out of this repository because their redistribution licence is not known.
-
-The scripts that turn that CAD into URDF links are included. With the CAD in place, they regenerate the meshes exactly, checked to 0.002 mm. See [docs/assets.md](docs/assets.md#third-party-sources).
+The SCARA base design is adapted from HowToMechatronics (see [CREDITS.md](CREDITS.md)). Its CAD is in `media/scara-arm/`.
 
 ## Licence
 
-Apache-2.0 for everything authored here (see [LICENSE](LICENSE)). The third-party CAD above is not covered and is not distributed.
+Apache-2.0 for everything authored here (see [LICENSE](LICENSE)). The adapted SCARA base CAD remains its original authors' work.

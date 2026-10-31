@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.1 (31 Oct 2026)
+
+### Added
+
+- **SCARA CAD and meshes:** the SCARA base CAD (unpacked) and its generated meshes are now in the repository, so the robot description is complete on a fresh clone.
+- **Credit:** a CREDITS.md entry for the adapted base design.
+
 ## 0.1.0 (31 Oct 2026)
 
 ### Added

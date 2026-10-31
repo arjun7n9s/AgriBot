@@ -10,32 +10,24 @@ Read this first, then `README.md` and `docs/assets.md`.
 - **Labelling numbers:** mark every number as measured, assumed or estimate. Don't guess unreadable rover-board markings; ask Tejesh (`preferences.md`).
 - **Checks:** run `tools/qa/check_assets.py` and `tools/description/write_urdf.py` after any asset change. Both must pass before committing.
 
-## State (31 Oct 2026)
+## State (1 Nov 2026)
 
-**Done on Windows:**
-- Rover, SCARA, cutter concept and field assets.
-- `agribot_description` and `agribot_field` ROS 2 packages.
-- Renders.
-- Asset QA: 29 meshes, 0 warnings, 0 failures.
+**Running on the Ubuntu laptop (RTX 4060):**
+- The Gazebo harvest demo works. See `docs/simulation.md`.
+- 2 of 2 picks verified in the crate.
+- The media in `docs/media` was filmed with `tools/sim/ubuntu/film.sh`.
 
-**Not yet run anywhere:** ROS 2 or Gazebo.
+**Next:**
+1. **Ripe-fruit detector.** YOLO on the 4060, trained on real photos. Feed its detections plus depth into a fruit localiser in place of the world-file targets.
+2. **Camera row-following** from `/front_camera/image`, in place of the ground-truth odometry line.
+3. **Unreal** as the picture layer on the Windows laptop, if wanted.
+4. **Real measurements from Tejesh:** wheelbase, track, steering linkage, masses, Arm 1 and PETG.
 
-**Next, on Ubuntu 22.04 with ROS 2 Humble and Gazebo Fortress (`ros-humble-ros-gz`):**
-
-1. **Build the packages.** Run `colcon build` on `sim/`, then `ros2 launch agribot_description display.launch.py`. Check the robot in RViz and that the joint sliders move it.
-2. **Demo world.** Write a generator script for one row of about 12 plants. Spawn fruit from each plant's `fruit_sites.json`, attach each fruit at its knuckle with a DetachableJoint, and add a ground plane and sky. The full 108-plant field is too heavy for an 8 GB card.
-3. **Gazebo extensions for the robot:**
-   - `gz_ros2_control` for the wheels, steering, arm, blade and trap door
-   - cameras (front, rear, arm RGB-D, scout)
-   - an IMU
-   - the label system for segmentation
-4. **ROS 2 nodes:** drive, row follower, detector, fruit localizer, SCARA IK, pick action, mission. The plan is in `docs/ros2-demo-sim-plan.md`.
-
-**Open questions for Tejesh:**
-- the real wheelbase, track and steering linkage
-- part masses
-- whether the printed Arm 1 is the stock part
-- PETG for Arm 2 and the cutter
+**Known simulation limitations** (by design, documented in `docs/simulation.md`):
+- On-plant fruit are static and passable by the robot.
+- The cut is a remove-and-respawn.
+- Plant stems have no collision.
+- Odometry is ground truth.
 
 ## Environment notes
 
@@ -43,5 +35,9 @@ Read this first, then `README.md` and `docs/assets.md`.
   - Blender 5.1 at `C:/Program Files/Blender Foundation/Blender 5.1/blender.exe`
   - Python venv at `.venv` (`tools/requirements.txt`)
   - SolidWorks is available
-- **Ubuntu:** `blender` and `python3 -m venv .venv`. The tools are portable.
+- **Ubuntu laptop:**
+  - SSH from Windows through the `agribot-ubuntu` alias in `~/.ssh/config`, over this laptop's hotspot.
+  - Workspace: `~/agribot_ws`, with `src/agribot` linking to `~/AgriBot/sim`.
+  - Helpers: `tools/sim/ubuntu/` (`env.sh`, `start.sh`, `stop.sh`, `film.sh`).
+- **Capture privacy:** never publish a full-desktop capture. Use only the Gazebo view crop (`make_video.py`), robot camera topics, or the graph drawn from ROS data. A full-desktop shot once caught personal chats.
 - **Render GPU:** Blender renders use Cycles on the GPU (OptiX). Render times are 10 s to 2 min per image.

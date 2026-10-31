@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
-"""cmd_vel -> four equal wheel speeds and one steering angle.
+"""cmd_vel -> four wheel speeds and one steering angle.
 
-The stock rover drives all four wheel motors together and steers with one
-motor, so this is a bicycle model: steering angle = atan(wheelbase * w / v),
-clipped to the steering limit. Publishes to wheel_controller and
-steering_controller (JointGroup controllers).
+Bicycle model: steering angle = atan(wheelbase * w / v), clipped to the steering
+limit (the yaw rate is then recomputed from the clipped angle). Each wheel gets
+the speed its own distance from the turn centre needs. In the simulator the
+wheels are stiff velocity servos; commanding all four the same speed would make
+them fight every turn, which the real DC wheel motors avoid by slowing under
+load. Straight driving is unaffected: all four wheels get the same speed.
+Publishes to wheel_controller [fl, fr, rl, rr] and steering_controller.
 """
 import math
 
@@ -15,7 +18,10 @@ from std_msgs.msg import Float64MultiArray
 
 WHEEL_RADIUS = 0.19
 WHEELBASE = 0.72        # assumed, see docs/work-plan.md
+TRACK = 0.55            # assumed
 STEER_LIMIT = math.radians(25)
+# Wheel positions relative to the rear-axle centre (x forward, y left).
+WHEELS = [(WHEELBASE, TRACK / 2), (WHEELBASE, -TRACK / 2), (0.0, TRACK / 2), (0.0, -TRACK / 2)]
 
 
 class Drive(Node):
@@ -30,9 +36,14 @@ class Drive(Node):
         v, w = msg.linear.x, msg.angular.z
         if abs(v) > 1e-3:
             self.angle = max(-STEER_LIMIT, min(STEER_LIMIT, math.atan(WHEELBASE * w / v)))
-        omega = v / WHEEL_RADIUS
-        self.wheels.publish(Float64MultiArray(data=[omega] * 4))
-        self.steer.publish(Float64MultiArray(data=[self.angle]))
+        w = v * math.tan(self.angle) / WHEELBASE           # yaw rate the clipped angle gives
+        if abs(w) < 1e-6:
+            speeds = [v] * 4
+        else:
+            radius = v / w                                   # signed, from the rear-axle centre
+            speeds = [math.copysign(math.hypot(radius - y, x), v) * abs(w) for x, y in WHEELS]
+        self.wheels.publish(Float64MultiArray(data=[s / WHEEL_RADIUS for s in speeds]))
+        self.steer.publish(Float64MultiArray(data=[self.angle, self.angle]))   # left, right knuckle
 
 
 def main():

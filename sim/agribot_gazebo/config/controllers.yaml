@@ -22,7 +22,7 @@ wheel_controller:
 
 steering_controller:
   ros__parameters:
-    joints: [steer_joint]
+    joints: [steer_joint, steer_right_joint]   # one motor and a parallel linkage on the car
 
 arm_controller:
   ros__parameters:

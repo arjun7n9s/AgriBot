@@ -200,16 +200,25 @@ def rover(p):
                                               note="estimate: ride-on chassis with batteries")
                 + mesh_visual("rover/visual/rover_body.obj") + box_collision(col["size"], col["xyz"])),
            joint(f"{p}base_joint", "fixed", f"{p}base_footprint", f"{p}base_link", (0, 0, R)),
-           link(f"{p}steer_link", box_inertial(0.5, (0.05, tr - 0.2, 0.03), note="estimate")),
-           joint(f"{p}steer_joint", "revolute", f"{p}base_link", f"{p}steer_link", (wb / 2, 0, 0),
-                 axis=(0, 0, 1), limit=(-steer, steer, 20.0, 1.0), dyn=(1.0, 0.1),
-                 note="one steering motor, parallel steer until the real linkage is measured; "
-                      "wheelbase, track and limit are assumed (docs/work-plan.md)")]
+           # One steering motor drives both front wheels through a linkage. Each wheel
+           # pivots at its own hub (kingpin); the right knuckle mimics the left, so the
+           # two stay parallel. (Pivoting the whole axle about its centre scrubs both
+           # tyres sideways and needed more torque than the motor has.) The real linkage
+           # geometry, wheelbase, track and limit are still assumed (docs/work-plan.md).
+           link(f"{p}front_left_knuckle", box_inertial(0.3, (0.04, 0.04, 0.06), note="estimate")),
+           link(f"{p}front_right_knuckle", box_inertial(0.3, (0.04, 0.04, 0.06), note="estimate")),
+           joint(f"{p}steer_joint", "revolute", f"{p}base_link", f"{p}front_left_knuckle", (wb / 2, tr / 2, 0),
+                 axis=(0, 0, 1), limit=(-steer, steer, 20.0, 1.0), dyn=(0.5, 0.05),
+                 note="the steering motor; steer_right_joint follows it"),
+           joint(f"{p}steer_right_joint", "revolute", f"{p}base_link", f"{p}front_right_knuckle",
+                 (wb / 2, -tr / 2, 0), axis=(0, 0, 1), limit=(-steer, steer, 20.0, 1.0), dyn=(0.5, 0.05),
+                 note="linked to steer_joint (parallel steer)").replace(
+                     "\n  </joint>", f'\n    <mimic joint="{p}steer_joint" multiplier="1" offset="0"/>\n  </joint>')]
     wheel = (cyl_inertial_y(1.5, R, ROV["measured"]["tyre_w"], note="estimate")
              + mesh_visual("rover/visual/wheel.obj")
              + f'\n    <collision>\n      {origin(rpy=(math.pi / 2, 0, 0))}\n      <geometry><cylinder radius="{f(R)}" length="{f(ROV["measured"]["tyre_w"])}"/></geometry>\n    </collision>')
-    for name, parent, xyz in (("front_left", "steer_link", (0, tr / 2, 0)),
-                              ("front_right", "steer_link", (0, -tr / 2, 0)),
+    for name, parent, xyz in (("front_left", "front_left_knuckle", (0, 0, 0)),
+                              ("front_right", "front_right_knuckle", (0, 0, 0)),
                               ("rear_left", "base_link", (-wb / 2, tr / 2, 0)),
                               ("rear_right", "base_link", (-wb / 2, -tr / 2, 0))):
         out += [link(f"{p}{name}_wheel", wheel),

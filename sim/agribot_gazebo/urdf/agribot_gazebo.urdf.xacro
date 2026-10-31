@@ -34,6 +34,10 @@
     <xacro:vel_joint name="rear_left_wheel_joint"/>
     <xacro:vel_joint name="rear_right_wheel_joint"/>
     <xacro:pos_joint name="steer_joint"/>
+    <!-- The right knuckle follows the left through the steering linkage. gz_ros2_control
+         (Fortress) accepts a mimic declaration but does not move the joint, so in the
+         simulator both knuckles get the same command, which is the same kinematics. -->
+    <xacro:pos_joint name="steer_right_joint"/>
     <xacro:pos_joint name="scout_pan_joint"/>
     <xacro:pos_joint name="scara_j1"/>
     <!-- Start 5 cm up: DART locks a prismatic joint that starts exactly on its limit. -->

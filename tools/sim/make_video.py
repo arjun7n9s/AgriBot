@@ -45,7 +45,8 @@ def phases(capture):
     keep = ("start", "drive", "approach", "cut", "retreat", "drop", "done")
     out = []
     for line in (capture / "launch.log").read_text(errors="replace").splitlines():
-        m = re.search(r"\[(\d{10}\.\d+)\] \[harvest_demo\]: (\w+)", re.sub(r"\x1b\[[0-9;]*m", "", line))
+        m = re.search(r"\[(\d{10}\.\d+)\] \[harvest_(?:demo|mission)\]: (\w+)",
+                      re.sub(r"\x1b\[[0-9;]*m", "", line))
         if m and m.group(2) in keep:
             out.append((float(m.group(1)) - t0, m.group(2)))
     return out
@@ -60,9 +61,17 @@ def main():
     gif_window = (approach + 2.0, cut + 3.0) if approach is not None and cut is not None else None
     (capture / "stills").mkdir(exist_ok=True)
 
-    cap = cv2.VideoCapture(str(capture / "desktop.webm"))
-    writer = cv2.VideoWriter(str(capture / "agribot_demo.mp4"), cv2.VideoWriter_fourcc(*"mp4v"), FPS,
-                             (OUT_W, OUT_H))
+    raw = capture / "desktop.webm"
+    cap = cv2.VideoCapture(str(raw))
+    ok, first = cap.read() if raw.exists() else (False, None)
+    if not ok:
+        sys.exit(f"no readable recording at {raw}; nothing written")
+    cap.release()
+    cap = cv2.VideoCapture(str(raw))
+    # Write to a temporary file and move it into place only when complete, so a
+    # failed run never replaces a good video.
+    tmp = capture / "agribot_demo.part.mp4"
+    writer = cv2.VideoWriter(str(tmp), cv2.VideoWriter_fourcc(*"mp4v"), FPS, (OUT_W, OUT_H))
     prev, out_t, gif_t, gif, written, started = None, None, None, [], 0, None
     while True:
         ok, frame = cap.read()
@@ -86,6 +95,10 @@ def main():
                 out_t += 1.0 / FPS
         prev = view
     writer.release()
+    if written < FPS:                             # under a second of video: keep the old file
+        tmp.unlink(missing_ok=True)
+        sys.exit("recording produced almost no frames; nothing replaced")
+    tmp.replace(capture / "agribot_demo.mp4")
     for _, name in stills_due:                    # phases after the last frame
         cv2.imwrite(str(capture / "stills" / f"{name}.png"), prev)
     if gif:

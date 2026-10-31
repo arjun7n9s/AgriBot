@@ -22,5 +22,9 @@ sleep 6                                    # hold the final shot
 kill -INT $CAST; wait $CAST
 "$HERE/stop.sh"
 grep -E "pick [0-9]|done:" "$OUT/launch.log" | sed "s/\x1b\[[0-9;]*m//g" | sed -E "s/.*\[harvest_demo\]: //"
-python3 "$HERE/../make_video.py" "$OUT"
-rm -f "$OUT/desktop.webm"                  # raw full-screen recording: not kept
+# The raw full-screen recording is deleted only once the cropped video exists.
+if python3 "$HERE/../make_video.py" "$OUT" && [ "$(stat -c %s "$OUT/agribot_demo.mp4" 2>/dev/null || echo 0)" -gt 1000000 ]; then
+  rm -f "$OUT/desktop.webm"
+else
+  echo "video step failed; kept $OUT/desktop.webm"
+fi

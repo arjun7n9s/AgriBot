@@ -1,0 +1,124 @@
+<?xml version="1.0"?>
+<!--
+  AgriBOT for Gazebo Fortress: the robot from agribot_description plus
+  ros2_control (gz_ros2_control), ground-truth odometry, cameras and an IMU.
+
+  Args: tool:=cutter|gripper, mast_pin:=0..4
+-->
+<robot name="agribot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:arg name="tool" default="cutter"/>
+  <xacro:arg name="mast_pin" default="3"/>
+  <xacro:include filename="$(find agribot_description)/urdf/agribot.urdf.xacro"/>
+
+  <xacro:macro name="pos_joint" params="name">
+    <joint name="${name}">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+  </xacro:macro>
+  <xacro:macro name="vel_joint" params="name">
+    <joint name="${name}">
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+  </xacro:macro>
+
+  <ros2_control name="AgribotGazebo" type="system">
+    <hardware>
+      <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+    </hardware>
+    <xacro:vel_joint name="front_left_wheel_joint"/>
+    <xacro:vel_joint name="front_right_wheel_joint"/>
+    <xacro:vel_joint name="rear_left_wheel_joint"/>
+    <xacro:vel_joint name="rear_right_wheel_joint"/>
+    <xacro:pos_joint name="steer_joint"/>
+    <xacro:pos_joint name="scout_pan_joint"/>
+    <xacro:pos_joint name="scara_j1"/>
+    <!-- Start 5 cm up: DART locks a prismatic joint that starts exactly on its limit. -->
+    <joint name="scara_z">
+      <command_interface name="position"/>
+      <state_interface name="position"><param name="initial_value">0.05</param></state_interface>
+      <state_interface name="velocity"/>
+    </joint>
+    <xacro:pos_joint name="scara_j2"/>
+    <xacro:pos_joint name="scara_j3"/>
+    <xacro:if value="${'$(arg tool)' == 'cutter'}">
+      <xacro:pos_joint name="scara_cutter_blade_joint"/>
+      <xacro:pos_joint name="scara_cutter_door_joint"/>
+    </xacro:if>
+  </ros2_control>
+
+  <gazebo>
+    <plugin filename="libgz_ros2_control-system.so" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+      <parameters>$(find agribot_gazebo)/config/controllers.yaml</parameters>
+    </plugin>
+    <!-- Ground-truth odometry (the real robot will use wheel encoders and the IMU). -->
+    <plugin filename="ignition-gazebo-odometry-publisher-system" name="ignition::gazebo::systems::OdometryPublisher">
+      <odom_frame>odom</odom_frame>
+      <robot_base_frame>base_footprint</robot_base_frame>
+      <odom_publish_frequency>30</odom_publish_frequency>
+      <dimensions>3</dimensions>
+    </plugin>
+  </gazebo>
+
+  <!-- Tyre grip -->
+  <xacro:macro name="tyre" params="name">
+    <gazebo reference="${name}_wheel">
+      <mu1>1.0</mu1>
+      <mu2>1.0</mu2>
+    </gazebo>
+  </xacro:macro>
+  <xacro:tyre name="front_left"/>
+  <xacro:tyre name="front_right"/>
+  <xacro:tyre name="rear_left"/>
+  <xacro:tyre name="rear_right"/>
+
+  <!-- Cameras. Frames follow the optical-frame convention in agribot_description. -->
+  <xacro:macro name="rgb_camera" params="link topic fov width height rate far">
+    <gazebo reference="${link}">
+      <sensor name="${topic}" type="camera">
+        <always_on>1</always_on>
+        <update_rate>${rate}</update_rate>
+        <visualize>false</visualize>
+        <topic>${topic}/image</topic>
+        <ignition_frame_id>${link}_optical_frame</ignition_frame_id>
+        <camera>
+          <horizontal_fov>${fov}</horizontal_fov>
+          <image><width>${width}</width><height>${height}</height><format>R8G8B8</format></image>
+          <clip><near>0.05</near><far>${far}</far></clip>
+        </camera>
+      </sensor>
+    </gazebo>
+  </xacro:macro>
+  <xacro:rgb_camera link="front_camera_link" topic="front_camera" fov="1.3" width="640" height="480" rate="15" far="40"/>
+  <xacro:rgb_camera link="scout_camera_link" topic="scout_camera" fov="1.0" width="640" height="480" rate="10" far="20"/>
+
+  <xacro:if value="${'$(arg tool)' == 'cutter'}">
+    <gazebo reference="scara_arm_camera_link">
+      <sensor name="arm_camera" type="rgbd_camera">
+        <always_on>1</always_on>
+        <update_rate>15</update_rate>
+        <visualize>false</visualize>
+        <topic>arm_camera</topic>
+        <ignition_frame_id>scara_arm_camera_link_optical_frame</ignition_frame_id>
+        <camera>
+          <horizontal_fov>1.5</horizontal_fov>
+          <image><width>640</width><height>480</height></image>
+          <clip><near>0.04</near><far>3.0</far></clip>
+          <depth_camera><clip><near>0.07</near><far>3.0</far></clip></depth_camera>
+        </camera>
+      </sensor>
+    </gazebo>
+  </xacro:if>
+
+  <gazebo reference="imu_link">
+    <sensor name="imu" type="imu">
+      <always_on>1</always_on>
+      <update_rate>100</update_rate>
+      <topic>imu</topic>
+      <ignition_frame_id>imu_link</ignition_frame_id>
+    </sensor>
+  </gazebo>
+</robot>

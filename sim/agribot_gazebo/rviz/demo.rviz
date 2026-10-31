@@ -1,0 +1,55 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Name: Grid
+      Enabled: true
+      Cell Size: 0.5
+      Plane Cell Count: 20
+      Color: 160; 160; 164
+    - Class: rviz_default_plugins/RobotModel
+      Name: RobotModel
+      Enabled: true
+      Description Source: Topic
+      Description Topic:
+        Value: /robot_description
+    - Class: rviz_default_plugins/TF
+      Name: TF
+      Enabled: false
+    - Class: rviz_default_plugins/Image
+      Name: Front camera
+      Enabled: true
+      Topic:
+        Value: /front_camera/image
+    - Class: rviz_default_plugins/Image
+      Name: Arm camera
+      Enabled: true
+      Topic:
+        Value: /arm_camera/image
+    - Class: rviz_default_plugins/Image
+      Name: Arm depth
+      Enabled: true
+      Topic:
+        Value: /arm_camera/depth_image
+  Enabled: true
+  Global Options:
+    Fixed Frame: base_footprint
+    Background Color: 48; 48; 48
+    Frame Rate: 30
+  Name: root
+  Tools:
+    - Class: rviz_default_plugins/MoveCamera
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Distance: 3.2
+      Focal Point: {X: -0.1, Y: -0.2, Z: 0.5}
+      Pitch: 0.45
+      Yaw: 2.4
+      Name: Current View
+Window Geometry:
+  Width: 1600
+  Height: 950

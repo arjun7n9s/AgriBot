@@ -1,0 +1,5 @@
+- Keep AgriBOT work in the cloud so it stays available when switching between Windows and Ubuntu. Added Oct 6, 2026.
+- Use Opus 5.5, not a fast model, for rover control-board analysis. Added Oct 6, 2026.
+- The rover board priority is a programmable logic interface. Do not spend effort on the 3D model unless asked. Added Oct 6, 2026.
+- Cross-check rover board photos with a second model. They are phone shots. Do not guess unreadable markings, traces, or pinouts; ask Tejesh. Added Oct 6, 2026.
+- Funding bills of materials use component, specification, quantity, and application. Printed arm material is 3 kg PLA. Development laptops are not line items. Cameras are a front RGB, a rear RGB, a short-range RGB-Depth arm camera, and a rotating scouting RGB with its pan mechanism. Include miscellaneous consumables and an optional-upgrades section when Tejesh lists them. Added Oct 12, 2026.

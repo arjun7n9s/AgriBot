@@ -1,0 +1,22 @@
+# Local Python environment and caches
+.venv/
+__pycache__/
+*.pyc
+
+# Office and CAD lock and temp files
+~$*
+*.tmp
+*.bak
+*.blend1
+
+# Third-party CAD (HowToMechatronics SCARA). The licence for redistributing these
+# files is unknown, so they stay local until that is cleared.
+# See docs/assets.md, "Third-party sources".
+media/scara-arm/
+
+# Meshes derived from that third-party CAD stay local for the same reason
+# (renders of it are fine and are committed).
+sim/agribot_description/meshes/scara/
+
+# Scratch output from asset tools
+build/

@@ -1,0 +1,23 @@
+* text=auto eol=lf
+
+*.py    text eol=lf
+*.md    text eol=lf
+*.yaml  text eol=lf
+*.urdf  text eol=lf
+*.xacro text eol=lf
+*.mtl   text eol=lf
+
+*.stl   binary
+*.STL   binary
+*.glb   binary
+*.obj   text eol=lf
+*.png   binary
+*.jpg   binary
+*.docx  binary
+*.pdf   binary
+*.zip   binary
+*.blend binary
+*.SLDPRT binary
+*.SLDASM binary
+*.step  binary
+*.STEP  binary

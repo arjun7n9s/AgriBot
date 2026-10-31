@@ -1,0 +1,76 @@
+# Simulator for this laptop
+
+**Use Gazebo Harmonic with ROS 2 Jazzy** (`ros-jazzy-ros-gz`) as the simulator on the RTX 5060. It can carry the rover (four wheel motors and one steering joint), the SCARA, and a real rendered color image on a ROS topic. It cannot make outdoor tomato pictures good enough to train a ripeness model.
+
+Checked against public pages on 9 Oct 2026. X/Twitter did not return a post that stayed open. The same RTX 5060 question is on the NVIDIA forum, and that page did open.
+
+## What this machine can do in Gazebo Harmonic
+
+Gazebo’s own pairing page tells a new user on Ubuntu 24.04 to install ROS 2 Jazzy and Gazebo Harmonic together. Jazzy with the newer Gazebo Jetty is marked incompatible. The Jazzy branch of `ros_gz` ships that Harmonic pairing from `packages.ros.org`, including `ros_gz_image`, which bridges a Gazebo image to ROS.
+
+The camera is a rendered picture, not a label baked from the physics state. A February 2026 Qiita write-up ran Gazebo Harmonic and ROS 2 Jazzy headless and delivered the TurtleBot3 camera to a browser. The default wide-angle camera renders six faces and stalled on a GPU-less VM (real-time factor 0.0015). Switching to a normal `camera` sensor, and lowering resolution and rate, brought the real-time factor to 0.978 on that same VM. Ogre 2 is built to use a GPU. An RTX 5060 with 8 GB is far above that example, so one rover, one arm, one row of plants, and one ordinary color camera fit. System RAM at 32 GB is the Isaac Sim minimum and is not the limit here.
+
+Joints cover the hardware already known: four driven wheels, one steering joint, and the SCARA. A ROS node can subscribe to the image, and the same graph can command those joints. That is the loop to build on this laptop.
+
+## What it cannot do
+
+Ogre 2 is a rasterizer with PBR materials. The ICRA 2026 Unreal Robotics Lab paper says Gazebo’s rendering still lags a modern game engine, and that is the right warning for fruit color. Gloss, leaf shadow, and outdoor light will not match a field. A classifier trained only on these frames will not transfer. Train ripeness on real tomato photos. Use the simulated image to test that the node runs, that a detection becomes an arm target, and that the motors respond.
+
+It also will not do Isaac-style synthetic-data generation, thousands of photoreal worlds, or soft fruit. Contact is rigid. Gazebo did not replace Isaac for perception. A 2026 Genesis ROS bridge, still describing itself as young, sends “photorealistic cameras for VLA / vision training” to Isaac Sim and “the most public examples” to Gazebo.
+
+## Why the other names lost
+
+| Option | Picture | Real camera a vision node can read | On this 8 GB GPU | ROS 2 | Why it lost for this laptop |
+| --- | --- | --- | --- | --- | --- |
+| Isaac Sim 6.1 | Path-traced RTX. Best of the set | Yes. RGB and the usual sensor set. A Qiita article on 3 Aug 2026 drove a robot both ways on Jazzy, on an RTX 4070 with 12 GB, not this machine | Official minimum is an RTX 4080 and 16 GB. Under 16 GB “may be insufficient” for a complex scene rendering more than 16 MP. Isaac Lab needs still more. On 30 Jun 2026, hking told an RTX 5060 8 GB owner it will launch for simple scenes and code tests, and that the RTX renderer alone needs up to about 7 GB | Jazzy bridge works if the process is started from a shell that has sourced Jazzy | The one-row scene already spends the card on the renderer. A field, extra cameras, or training does not fit |
+| Unreal Robotics Lab (ICRA 2026) | Unreal Lumen / Nanite. The paper’s whole point is a photoreal camera | Yes. RGB, depth, and segmentation, with camera intrinsics. ROS is a separate ZeroMQ bridge (`urlab_bridge`) | No 8 GB budget is published. Requires Unreal Engine 5.7 as a C++ plugin. The README says to avoid 5.8 on Linux because of Vulkan driver bugs | ROS exists, beside the editor, not as the Jazzy default | This is the 2026 project that tries to be both a camera and a contact solver. It is a research plugin, not the simulator people are actually pairing with Jazzy |
+| Genesis, plus Nyx | Default rasterizer is explicitly non-photorealistic. Nyx is an in-house path tracer aimed at synthetic perception | Nyx returns an RGB tensor from a camera sensor. The public docs say `gs-nyx` is still on an internal package index, not PyPI | No 8 GB number on the pages that opened. Physics is the part people praise | `genesis_ros` targets Ubuntu 24.04 / Jazzy and says the bridge is young | August 2026 practice (a Sensyn Robotics note) is still “train in Isaac Lab, replay in Genesis,” for mud and policy transfer, not for a ripeness camera |
+| Isaac Lab 3 + Newton | Newton Warp: low VRAM, lightweight rasterization, no full RTX materials. OVRTX: kit-less RTX, and the docs say it uses more VRAM | Yes, as a learning-camera observation, not as a ROS rover | The 6 Jan 2026 Isaac Lab discussion makes the stack lighter so it can run on L40S / H100 / H200 / B200 after dropping the RTX requirement. That is the opposite direction from a pretty 8 GB scene | ROS stays on the Isaac Sim / PhysX side of the ecosystem page | Newton replaces PhysX inside robot learning (an NVIDIA engineer said so on Hacker News, 5 Oct 2025, for Isaac Lab, not for games). It does not replace the camera |
+| mjlab (2026) | MuJoCo’s own view | A camera exists. It is not a field renderer | GPU training stack on MuJoCo Warp. A Hacker News comment on 6 Oct 2025 pointed at it as the light Isaac Lab-style API | Not a ROS 2 robot stack | Right tool for a later walking or grasping policy. Wrong tool for fruit color |
+| MuJoCo, MJX, MuJoCo Warp | Native renderer is OpenGL. `mujoco_ros2_control` on Jazzy can publish that RGB-D image, including headless EGL | Yes, and it will not look like a field | Physics runs on CPU. The GPU ports are for many environments, not for a path tracer | Community / `ros2_control` plugin, not the Jazzy default simulator | Same split as the last five years: best contact, weakest picture |
+| ManiSkill 3 / SAPIEN | Rasterizer in the parallel path. Ray tracing exists | Gym RGB-D, not a ROS camera | Their own 4090 benchmarks are more memory-efficient than Isaac Lab because they rasterize. The quickstart says the ray-traced view “is not useful for any practical purposes (for e.g. machine learning) apart from generating cool demonstration videos” | No ROS 2 story on the pages opened | A manipulation gym. The fast camera is the one that is less photoreal than Isaac |
+| Isaac Gym | Superseded | No photoreal camera | — | — | Isaac Lab’s ecosystem page: the Gym API was absorbed into Isaac Sim, and IsaacGymEnvs / OmniIsaacGymEnvs / Orbit are deprecated in favor of Isaac Lab |
+| Drake | VTK color and label images in the tutorials. The project describes itself as model-based design and verification | A render exists. It is for geometry and labels | CPU dynamics toolbox | The Drake homepage lists ROS 2 as unsupported | Use it later if a grasp needs an optimization model. It is not the field camera |
+| Unity, and Unreal without URLab | Game-engine pictures, which is why URLab bothers | Possible, with a manual bridge. AirSim is the old Unreal path and is not what the 2026 paper treats as current | A game scene can be modest. Nobody on the pages opened is running a Jazzy tomato rover this way | Manual | Pretty, and a second physics engine to keep honest. Gazebo already gives the ROS graph |
+
+## What to keep Isaac for
+
+Keep Isaac Sim 6.1 in mind for a later rented GPU, when the job is synthetic tomatoes rather than the control graph. On this laptop the published floor is an RTX 4080 and 16 GB, and the June 2026 forum reply on an RTX 5060 says the renderer alone can take about 7 GB before the plants are in the scene.
+
+## Sources
+
+- [Gazebo Harmonic with ROS](https://gazebosim.org/docs/harmonic/ros_installation/) — Ubuntu 24.04, Jazzy, and Harmonic are the recommended trio. Jazzy with Gazebo Jetty is marked incompatible.
+- [ros_gz Jazzy README](https://github.com/gazebosim/ros_gz/blob/jazzy/README.md) — Jazzy + Harmonic binaries on `packages.ros.org`, with an image bridge.
+- [Gazebo Harmonic camera on a GPU-less VM](https://qiita.com/chinsa_evessa/items/1f193fe7ec94eb350abb) — 8 Feb 2026. Ogre 2 camera images on Jazzy; a normal camera runs where the wide-angle cube map does not.
+- [Isaac Sim 6.1 requirements](https://docs.isaacsim.omniverse.nvidia.com/6.1.0/installation/requirements.html) — minimum GPU is a GeForce RTX 4080 with 16 GB. Under 16 GB may be insufficient above 16 MP. Isaac Lab needs more.
+- [RTX 5060, 8 GB, on the NVIDIA forum](https://forums.developer.nvidia.com/t/is-8gb-vram-enough-for-basic-isaac-sim-5-1-usage/373600) — 17–30 Jun 2026. hking: it launches for simple scenes; the RTX renderer alone needs up to about 7 GB.
+- [Unreal Robotics Lab, ICRA 2026](https://arxiv.org/html/2504.14135) — Gazebo rendering lags game engines, MuJoCo has no photoreal camera, Isaac trades contact accuracy for scale. URLab is the attempt to combine Unreal pictures with MuJoCo.
+
+## Best case on two 8 GB laptops
+
+The RTX 5060 (32 GB RAM) runs the demo in Isaac Sim 5.0 with DLSS 4 set to Performance, and the field in the camera is a 3D Gaussian splat of a real row rather than a path-traced scene; the RTX 4060 trains the ripe-fruit detector and mints extra frames from a few real photos with 8-bit LTX-Video. The two cards do not share VRAM.
+
+Checked against pages opened on 10 Oct 2026.
+
+The 5060 is the simulator because it is the machine with 32 GB of system RAM, which is Isaac’s published RAM floor, and because a 4 Jan 2026 Qiita post already ran Isaac Sim 5.0 on this exact laptop class (RTX 5060 Laptop, 8 GB GDDR7, 32 GB RAM, Ubuntu 22.04). PhysX on that machine carries the rover: four driven wheels, one steering joint, and the SCARA, in a small stage. DLSS is the switch that made the sample playable. On the RoboParty scene, `nvidia-smi` with DLSS left on Auto read 2767 MiB of 8151 and 100% GPU at 41 W. Setting NVIDIA DLSS to Performance, under Render Setting → Ray Tracing, read 2510 MiB, 53% GPU, 27 W. Startup settled at about 25 seconds. That is a sample with a few robots, so the stage stays one row. The same post’s compatibility check still painted VRAM red.
+
+The picture of the plants is a splat, posed from the simulator the way SplatSim (ICRA 2025) poses a robot inside a Gaussian scene while a physics engine keeps the contact. SplatSim’s own deploy card was an RTX 3080 Ti for the policy, and its zero-shot success was 86.25% against 97.5% for policies trained on real images. The 8 GB render number is a different page: on an RTX 3060 Ti with 8 GB, the bicycle splat at 1024×1024 took 12 ms (80 FPS) in the official viewer and 15 ms (67 FPS) in Unity. Train that splat only at the small-scene end of the gsplat table (bonsai 2.29 GB, counter 2.23 GB, kitchen 3.17 GB at 30k). Those figures were measured on a TITAN RTX as memory used, so they describe the job size, and a job that stays near 2–3 GB fits an 8 GB card. Close Isaac before that training pass. The 5060’s 32 GB of RAM is what COLMAP wants; the GPU pass is the short one.
+
+The 4060 is the training machine, and it does not join the Isaac process. A YOLO11x-seg trained on Laboro Tomato (green, half-ripe, fully ripe) is reported at about 6 GB on an RTX 4060, batch 4, 640×640, 100 epochs: 90.1% box mAP@0.5, 89.8% mask mAP@0.5, 28 ms inference. Extra frames come from LTX-VideoQ8, which takes a still photo as image-to-video. Lightricks and the Q8 author both say an RTX 4060 with 8 GB produces a 720×480×121 clip in under a minute; the author’s own bench is 40 steps on an RTX 4060 Laptop, CUDA 12.6, PyTorch 2.5.1. Export the detector to TensorRT for the live loop. Ultralytics clocks YOLO11n at 1.5 ms on a T4 with TensorRT 10. A laptop RTX 4060 owner, running a YOLOv8n engine, measured 8–10 ms per frame. That engine is small enough to sit beside the 2.5 GB Isaac sample. It is not small enough to sit beside a path-traced field.
+
+### Tricks that lost
+
+- **NuRec as the way to build the field.** NVIDIA’s own hardware page requires more than 24 GB of GPU memory for Neural Reconstruction, and recommends more than 48 GB. Rendering a finished splat is the 8 GB job. Reconstructing one with NuRec is not. [NuRec hardware](https://docs.nvidia.com/nurec/basics/hardware.html)
+- **Cosmos Transfer 2.5 on either laptop.** The 2B checkpoint needs 65.4 GB for single-GPU inference. The agricultural recipe that actually includes tomato rows (Aigen, about 3,000 RGB-D clips, 1% real data for a weeding model) is specified as 8× A100. A short rented burst can still mint a batch later. It is not the local loop. [Cosmos Transfer 2.5 model matrix](https://docs.nvidia.com/cosmos/latest/transfer2.5/model_matrix.html) · [Aigen tomato recipe](https://nvidia-cosmos.github.io/cosmos-cookbook/recipes/post_training/transfer2_5/agtec_scenarios_single_view/post_training.html)
+- **Data-parallel training across the two laptops.** DDP keeps a full copy of the model on each GPU, so the 8 GB ceilings stay 8 GB. On a Vast.ai box with P2P disabled, 2× RTX 4090 DDP of a 1.7B model scored 4.50 samples/s against 15.38 on one GPU (0.29×, 15% efficiency). Two laptops on Ethernet are a slower link than that PCIe machine. [cortwave DDP benchmark](https://github.com/cortwave/distributed-training)
+- **A full outdoor splat, or gsplat’s 4-GPU memory number, on these machines.** gsplat-30k used 10.58 GB on bicycle and 9.88 GB on garden. The 2.0 GB figure is four GPUs in one machine, not two laptops. [gsplat eval](https://github.com/isl-org/gsplat/blob/main/docs/source/tests/eval.rst)
+- **A path-traced Isaac field on the 5060.** On 30 Jun 2026, hking told an RTX 5060 8 GB owner that the RTX renderer alone needs up to about 7 GB. DLSS Performance in the Qiita test cut GPU load from 100% to 53% and only moved VRAM from 2767 MiB to 2510 MiB. Upscaling made the sample smooth. It did not buy a warehouse of plants. [NVIDIA forum, RTX 5060](https://forums.developer.nvidia.com/t/is-8gb-vram-enough-for-basic-isaac-sim-5-1-usage/373600)
+
+### Sources for this section
+
+- [Isaac Sim 5.0 on an RTX 5060 Laptop, with DLSS 4](https://qiita.com/ebiten_tabetai/items/24447cd1974b2b587d33) — 4 Jan 2026. RoboParty: 2767 MiB and 100% GPU with DLSS Auto; 2510 MiB and 53% GPU with DLSS Performance.
+- [3D Gaussian splat viewer on an 8 GB RTX 3060 Ti](https://github.com/clarte53/GaussianSplattingVRViewerUnity) — bicycle, 1024×1024: 12 ms / 80 FPS in the official viewer, 15 ms / 67 FPS in Unity.
+- [SplatSim, ICRA 2025](https://arxiv.org/html/2409.10161v3) — physics engine under a Gaussian camera. 86.25% zero-shot success. Policy deployed on an RTX 3080 Ti.
+- [YOLO11x-seg on Laboro Tomato](https://github.com/Fonyuy45/yolo11-tomato-segmentation) — about 6 GB on an RTX 4060, batch 4, 90.1% mAP@0.5, 28 ms.
+- [LTX-VideoQ8 on an RTX 4060](https://github.com/KONAKONA666/LTX-Video) — 720×480×121 in under a minute on 8 GB; image-to-video is a supported path. Also listed by [Lightricks](https://github.com/Lightricks/LTX-Video).
+- [YOLO11 TensorRT speeds](https://docs.ultralytics.com/models/yolo11/) — YOLO11n is 1.5 ms on a T4 with TensorRT 10. A laptop RTX 4060 measured 8–10 ms on a YOLOv8n engine: [ultralytics#16211](https://github.com/ultralytics/ultralytics/issues/16211).

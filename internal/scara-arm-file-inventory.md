@@ -9,9 +9,9 @@ Drive file `1Ix2lp_9UheI-O5mz6m4FaI6yEdq0rfvx`, title `scara-robot-arm20240812-1
 
 Landed at `media/scara-arm/`. Outer zip kept as `media/scara-arm/scara-robot-arm20240812-1-wyhchy.zip`. Contents are a HowToMechatronics SCARA export. Three nested zips were unpacked beside themselves:
 
-- `HowToMechatronics/scara-robot-arm/solidworks/`
-- `HowToMechatronics/scara-robot-arm/stl/`
-- `HowToMechatronics/scara-robot-arm/laser/`
+- `scara-robot-arm/solidworks/`
+- `scara-robot-arm/stl/`
+- `scara-robot-arm/laser/`
 
 115 mesh/CAD files, plus one PDF and four zips. Sizes are unpacked file sizes.
 

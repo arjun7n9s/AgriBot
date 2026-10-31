@@ -1,5 +1,5 @@
 {
-  "source": "media/scara-arm/HowToMechatronics/scara-robot-arm/SCARA Robot 3D Model.STEP",
+  "source": "media/scara-arm/scara-robot-arm/SCARA Robot 3D Model.STEP",
   "units": "metres, radians",
   "link_lengths": {
     "L1": 0.22798,

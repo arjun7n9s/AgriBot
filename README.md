@@ -12,7 +12,7 @@ An autonomous tomato-harvesting rover. It drives tomato rows, finds ripe fruit w
 
 ![Harvest demo in Gazebo](docs/media/agribot_pick.gif)
 
-The rover follows the furrow with its front camera, finds red tomatoes with its arm's RGB-D camera, cuts each one off its pedicel, catches it and drops it in the crate. No target comes from the world file. Gazebo confirms each pick: three of three landed in the crate. Ripeness is not judged yet (a colour rule finds red fruit, half-ripe included); a learned model is next. Watch the [full run (MP4)](docs/media/agribot_demo.mp4), or read [docs/simulation.md](docs/simulation.md) for the ROS 2 graph, measurements and limitations.
+The rover follows the furrow with its front camera, finds red tomatoes with its arm's RGB-D camera, cuts each one off its pedicel, catches it and drops it in the crate. No target comes from the world file. Gazebo confirms each pick: three of three landed in the crate. Ripeness is not judged yet (a colour rule finds red fruit, half-ripe included); a learned model is next. Watch the [full run (MP4, 4 min, opens a player)](https://github.com/arjun7n9s/AgriBot/blob/main/docs/media/agribot_demo.mp4), or read [docs/simulation.md](docs/simulation.md) for the ROS 2 graph, measurements and limitations.
 
 ## What's here
 

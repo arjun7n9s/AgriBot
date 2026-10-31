@@ -41,7 +41,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent))
 from step_tree import read_leaves  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-STEP = ROOT / "media/scara-arm/HowToMechatronics/scara-robot-arm/SCARA Robot 3D Model.STEP"
+STEP = ROOT / "media/scara-arm/scara-robot-arm/SCARA Robot 3D Model.STEP"
 OUT = ROOT / "build/scara"
 
 # STEP instance id (NAUOn) -> link. Taken from the part names and positions

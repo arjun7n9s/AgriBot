@@ -8,7 +8,7 @@ No target comes from the world file. Navigation and targeting use only the robot
 
 ![A pick](media/agribot_pick.gif)
 
-**Full run:** [media/agribot_demo.mp4](media/agribot_demo.mp4), 4 min 14 s at 1280×720, three picks.
+**Full run:** [media/agribot_demo.mp4](https://github.com/arjun7n9s/AgriBot/blob/main/docs/media/agribot_demo.mp4), 4 min 14 s at 1280×720, three picks.
 
 | Drive | Approach | Cut |
 | --- | --- | --- |

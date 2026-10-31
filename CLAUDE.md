@@ -13,19 +13,21 @@ Read this first, then `README.md` and `docs/assets.md`.
 ## State (1 Nov 2026)
 
 **Running on the Ubuntu laptop (RTX 4060):**
-- The Gazebo harvest demo works. See `docs/simulation.md`.
-- 2 of 2 picks verified in the crate.
+- The Gazebo harvest demo works from cameras alone: `row_follower` steers on the furrow, `fruit_detector` finds red fruit with the arm RGB-D camera, and `harvest_mission` picks them. See `docs/simulation.md`.
+- Clean run: 3 of 3 picks verified in the crate (one ripe, two half-ripe).
 - The media in `docs/media` was filmed with `tools/sim/ubuntu/film.sh`.
+- Run `tools/sim/ubuntu/stop.sh` before every run; stale nodes publish on the same topics.
 
 **Next:**
-1. **Ripe-fruit detector.** YOLO on the 4060, trained on real photos. Feed its detections plus depth into a fruit localiser in place of the world-file targets.
-2. **Camera row-following** from `/front_camera/image`, in place of the ground-truth odometry line.
+1. **Ripeness.** A learned detector (for example YOLO on the 4060, trained on real photos) that tells ripe from half-ripe. Keep the `/fruit/detections` interface.
+2. **Pedicel accuracy.** Estimates are 6–24 mm off; the real throat is 6 mm. Detect the pedicel, or close in with the arm camera before cutting.
 3. **Unreal** as the picture layer on the Windows laptop, if wanted.
 4. **Real measurements from Tejesh:** wheelbase, track, steering linkage, masses, Arm 1 and PETG.
 
 **Known simulation limitations** (by design, documented in `docs/simulation.md`):
 - On-plant fruit are static and passable by the robot.
-- The cut is a remove-and-respawn.
+- The cut is a remove-and-respawn, accepted within 3 cm of the throat.
+- The rover turns less sharply than the bicycle model (tyre slip).
 - Plant stems have no collision.
 - Odometry is ground truth.
 

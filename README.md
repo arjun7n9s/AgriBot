@@ -12,7 +12,7 @@ An autonomous tomato-harvesting rover. It drives tomato rows, finds ripe fruit w
 
 ![Harvest demo in Gazebo](docs/media/agribot_pick.gif)
 
-The rover drives the furrow, cuts a ripe tomato off its pedicel, catches it and drops it in the crate. Gazebo confirms each pick: two of two landed in the crate. Watch the [full run (MP4)](docs/media/agribot_demo.mp4), or read [docs/simulation.md](docs/simulation.md) for the ROS 2 graph, measurements and limitations.
+The rover follows the furrow with its front camera, finds red tomatoes with its arm's RGB-D camera, cuts each one off its pedicel, catches it and drops it in the crate. No target comes from the world file. Gazebo confirms each pick: three of three landed in the crate. Ripeness is not judged yet (a colour rule finds red fruit, half-ripe included); a learned model is next. Watch the [full run (MP4)](docs/media/agribot_demo.mp4), or read [docs/simulation.md](docs/simulation.md) for the ROS 2 graph, measurements and limitations.
 
 ## What's here
 
@@ -22,7 +22,7 @@ The rover drives the furrow, cuts a ripe tomato off its pedicel, catches it and 
 | Simulation assets: rover, SCARA, cutter, tomato field | v0.1, built on Windows | [docs/assets.md](docs/assets.md) |
 | Robot description (URDF/xacro, ROS 2 package) | Builds and runs on Ubuntu | [sim/agribot_description](sim/agribot_description) |
 | Field models for Gazebo and Unreal | Running in Gazebo | [sim/agribot_field](sim/agribot_field) |
-| Gazebo harvest demo (ROS 2 Humble, Fortress) | Working: 2 of 2 verified picks | [docs/simulation.md](docs/simulation.md), [sim/agribot_gazebo](sim/agribot_gazebo) |
+| Gazebo harvest demo (ROS 2 Humble, Fortress) | Working: camera row-following and fruit detection, 3 of 3 verified picks | [docs/simulation.md](docs/simulation.md), [sim/agribot_gazebo](sim/agribot_gazebo) |
 | SCARA redesign and tomato cutter | Concept, waiting on bench tests | [docs/scara-redesign.md](docs/scara-redesign.md) |
 | Simulation pathway | Plan | [docs/work-plan.md](docs/work-plan.md), [docs/ros2-demo-sim-plan.md](docs/ros2-demo-sim-plan.md) |
 | Stock rover control board (reverse engineering) | In progress | [docs/rover-control-board.md](docs/rover-control-board.md), [docs/rover-logic-interface.md](docs/rover-logic-interface.md) |
@@ -37,7 +37,7 @@ docs/                     plans, designs, bills of materials, renders (docs/imag
 sim/
   agribot_description/    ROS 2 package: URDF/xacro, meshes, frames, display launch
   agribot_field/          ROS 2 package: Gazebo models (tomatoes, plants, beds, soil) + glTF
-  agribot_gazebo/         ROS 2 package: Gazebo world, ros2_control, cameras, bridge, harvest demo
+  agribot_gazebo/         ROS 2 package: Gazebo world, ros2_control, cameras, bridge, row follower, fruit detector, harvest mission
 tools/
   scara/                  STEP -> URDF links (OpenCascade)
   blender/                procedural assets and renders (Blender 5.1)

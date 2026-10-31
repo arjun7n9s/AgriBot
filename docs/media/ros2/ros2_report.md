@@ -1,82 +1,79 @@
-# ROS 2 snapshot (2026-11-01T02:32:08Z)
+# ROS 2 snapshot: perception-driven harvest (1 Nov 2026)
+
+Clean run on the Ubuntu laptop (RTX 4060, ROS 2 Humble, Gazebo Fortress 6.18), `picks:=3`. Nothing but this launch was running.
 
 ## Nodes
+
+```
 /arm_controller
+/capture_frames
 /controller_manager
 /drive_node
+/fruit_detector
 /gz_ros2_control
-/harvest_demo
+/harvest_mission
 /joint_state_broadcaster
 /robot_state_publisher
 /ros_gz_bridge
-/rqt_gui_py_node_23864
+/row_follower
 /scout_controller
 /steering_controller
 /tool_controller
 /wheel_controller
-
-## Topics
-/arm_camera/camera_info [sensor_msgs/msg/CameraInfo]
-/arm_camera/depth_image [sensor_msgs/msg/Image]
-/arm_camera/image [sensor_msgs/msg/Image]
-/arm_controller/controller_state [control_msgs/msg/JointTrajectoryControllerState]
-/arm_controller/joint_trajectory [trajectory_msgs/msg/JointTrajectory]
-/arm_controller/state [control_msgs/msg/JointTrajectoryControllerState]
-/arm_controller/transition_event [lifecycle_msgs/msg/TransitionEvent]
-/capture [std_msgs/msg/String]
-/clock [rosgraph_msgs/msg/Clock]
-/cmd_vel [geometry_msgs/msg/Twist]
-/dynamic_joint_states [control_msgs/msg/DynamicJointState]
-/front_camera/camera_info [sensor_msgs/msg/CameraInfo]
-/front_camera/image [sensor_msgs/msg/Image]
-/harvest/count [std_msgs/msg/Int32]
-/harvest/phase [std_msgs/msg/String]
-/imu [sensor_msgs/msg/Imu]
-/joint_state_broadcaster/transition_event [lifecycle_msgs/msg/TransitionEvent]
-/joint_states [sensor_msgs/msg/JointState]
-/odom [nav_msgs/msg/Odometry]
-/parameter_events [rcl_interfaces/msg/ParameterEvent]
-/robot_description [std_msgs/msg/String]
-/rosout [rcl_interfaces/msg/Log]
-/scout_camera/camera_info [sensor_msgs/msg/CameraInfo]
-/scout_camera/image [sensor_msgs/msg/Image]
-/scout_controller/commands [std_msgs/msg/Float64MultiArray]
-/scout_controller/transition_event [lifecycle_msgs/msg/TransitionEvent]
-/steering_controller/commands [std_msgs/msg/Float64MultiArray]
-/steering_controller/transition_event [lifecycle_msgs/msg/TransitionEvent]
-/tf [tf2_msgs/msg/TFMessage]
-/tf_static [tf2_msgs/msg/TFMessage]
-/tool_controller/commands [std_msgs/msg/Float64MultiArray]
-/tool_controller/transition_event [lifecycle_msgs/msg/TransitionEvent]
-/wheel_controller/commands [std_msgs/msg/Float64MultiArray]
-/wheel_controller/transition_event [lifecycle_msgs/msg/TransitionEvent]
+```
 
 ## Controllers
+
+```
 joint_state_broadcaster joint_state_broadcaster/JointStateBroadcaster          active
-arm_controller          joint_trajectory_controller/JointTrajectoryController  active
 wheel_controller        velocity_controllers/JointGroupVelocityController      active
+arm_controller          joint_trajectory_controller/JointTrajectoryController  active
 steering_controller     position_controllers/JointGroupPositionController      active
-scout_controller        position_controllers/JointGroupPositionController      active
 tool_controller         position_controllers/JointGroupPositionController      active
+scout_controller        position_controllers/JointGroupPositionController      active
+```
 
-## Rates (measured with ros2 topic hz, sim running)
-- `/clock`: 458.577 Hz
-- `/joint_states`: 91.910 Hz
-- `/odom`: 26.948 Hz
-- `/imu`: 91.442 Hz
-- `/tf`: 18.431 Hz
-- `/front_camera/image`: 8.762 Hz
-- `/scout_camera/image`: 4.488 Hz
-- `/arm_camera/image`: 4.648 Hz
-- `/arm_camera/depth_image`: 4.465 Hz
+## Perception and mission topics
 
-## Harvest phases
-start: targets from the world file; detector not yet in the loop
-drive: following the furrow to x = -0.02 m
-approach: plant_b0_r0_t1_f1 (tomato_ripe), target from world ground truth
-planned joints {'scara_j1': -0.665, 'scara_z': 0.191, 'scara_j2': 0.979, 'scara_j3': -1.885}
-throat on the pedicel: planned error 0.0 mm, measured error 0.1 mm, joints {'scara_j1': -0.665, 'scara_z': 0.191, 'scara_j2': 0.979, 'scara_j3': -1.885}
-cut: closing the blade across the throat
-fruit after the cut: 1.8 cm from the cut point (in the cradle)
-retreat and carry to the crate
-drop: opening the trap door over the crate
+| Topic | Type | From → to |
+| --- | --- | --- |
+| `/front_camera/image` | `sensor_msgs/Image` | bridge → `row_follower` |
+| `/row_follower/enable` | `std_msgs/Bool` | `harvest_mission` → `row_follower` |
+| `/row_follower/state` | `std_msgs/Float32MultiArray` [near, far, confidence] | `row_follower` → (monitoring) |
+| `/row_follower/debug_image` | `sensor_msgs/Image` | `row_follower` → `capture_frames`, RViz |
+| `/cmd_vel` | `geometry_msgs/Twist` | `row_follower`, `harvest_mission` → `drive_node` |
+| `/arm_camera/image`, `/arm_camera/depth_image`, `/arm_camera/camera_info` | `sensor_msgs` | bridge → `fruit_detector` |
+| `/fruit/detections` | `geometry_msgs/PoseArray` (frame `base_footprint`) | `fruit_detector` → `harvest_mission` |
+| `/fruit/markers` | `visualization_msgs/MarkerArray` | `fruit_detector` → RViz |
+| `/fruit/debug_image` | `sensor_msgs/Image` | `fruit_detector` → `capture_frames`, RViz |
+| `/harvest/phase`, `/harvest/count` | `std_msgs/String`, `std_msgs/Int32` | `harvest_mission` → (monitoring) |
+
+## Rates (measured with `ros2 topic hz`, simulation running headless)
+
+| Topic | Rate |
+| --- | --- |
+| `/clock` | 454.8 Hz (0.91 × real time) |
+| `/joint_states` | 87.9 Hz |
+| `/imu` | 89.4 Hz |
+| `/odom` | 26.8 Hz |
+| `/tf` | 18.2 Hz |
+| `/front_camera/image` | 6.7 Hz |
+| `/arm_camera/image` | 3.2 Hz |
+| `/arm_camera/depth_image` | 6.1 Hz |
+| `/scout_camera/image` | 4.6 Hz |
+| `/row_follower/state` | 13.5 Hz |
+| `/fruit/detections` | 13.8 Hz |
+
+The row-follower and detector publish once per input image, yet they measure faster than the camera topics feeding them. So treat the camera figures as lower bounds. The likely cause is that `ros2 topic hz` (Python) cannot deserialise full images as fast as they arrive; the nodes' own output rates are the better estimate of what the cameras deliver.
+
+## Harvest phases (from the `harvest_mission` log)
+
+| Pick | Stop (fruit seen, rover frame, m) | Confirmed | Pedicel picked (world-file diagnostic) | Distance from estimate | Result |
+| --- | --- | --- | --- | --- | --- |
+| 1 | (0.108, −0.490, 0.831) | 24 of 24 frames, 2 fruit in reach | `plant_b0_r0_t1_f3`, half-ripe | 16 mm | in the crate |
+| 2 | (0.102, −0.501, 0.785) | 24 of 24 frames, 1 fruit in reach | `plant_b0_r1_t1_f3`, ripe | 6 mm | in the crate |
+| 3 | (0.103, −0.489, 0.835) | 24 of 24 frames, 2 fruit in reach | `plant_b0_r2_t1_f3`, half-ripe | 24 mm | in the crate |
+
+Every pick: the throat reached the estimated pedicel to within 0.1 mm (forward kinematics of the measured joints). Final line of the log: `done: 3 of 3 picks verified in the crate`.
+
+The world-file lookup is used only to say which fruit was cut and how far it was from the estimate; it never feeds the targeting.

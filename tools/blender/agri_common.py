@@ -365,8 +365,17 @@ def export_stl(objs, path):
 
 
 def export_all(objs, stem, formats=("glb", "obj")):
-    """Write stem.glb / stem.obj for the given objects."""
+    """Write stem.glb / stem.obj for the given objects, after removing
+    zero-length edges and zero-area faces."""
     stem = pathlib.Path(stem)
+    for o in objs:
+        if o.type != "MESH" or o.data.users > 1:
+            continue
+        bm = bmesh.new()
+        bm.from_mesh(o.data)
+        bmesh.ops.dissolve_degenerate(bm, dist=1e-6, edges=bm.edges)
+        bm.to_mesh(o.data)
+        bm.free()
     if "glb" in formats:
         export_glb(objs, stem.with_suffix(".glb"))
     if "obj" in formats:

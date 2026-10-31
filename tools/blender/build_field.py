@@ -285,22 +285,42 @@ def fruit_sdf(kind, geo):
 
 def leaflet(name, length, width, mat, rng):
     """Serrated ovate leaflet along +x, folded on the midrib and drooping."""
-    n = 12
+    n = 14
     bm = bmesh.new()
+    uv_of = {}
+
+    def vert(co, uv):
+        v = bm.verts.new(co)
+        uv_of[v] = uv
+        return v
+
+    def droop(x):
+        return -0.25 * (x / length) ** 2 * length
+
+    # Midrib from base (t = 0) to tip (t = 1); the edges exist only between them,
+    # so the base and tip close with triangles instead of zero-width quads.
+    mid = [vert((i / n * length, 0, droop(i / n * length)), (i / n, 0.5)) for i in range(n + 1)]
     left, right = [], []
-    for i in range(n + 1):
+    for i in range(1, n):
         t = i / n
         w = width * math.sin(math.pi * t ** 0.75) * (1 - 0.25 * t)
         w *= 1 + 0.10 * math.sin(2 * math.pi * 7 * t) * (t > 0.08) * (t < 0.95)
         x = t * length
-        droop = -0.25 * (x / length) ** 2 * length
-        fold = 0.18 * w
-        left.append(bm.verts.new((x, w / 2, droop + fold)))
-        right.append(bm.verts.new((x, -w / 2, droop + fold)))
-    mid = [bm.verts.new((i / n * length, 0, -0.25 * (i / n) ** 2 * length)) for i in range(n + 1)]
-    for i in range(n):
-        bm.faces.new((mid[i], mid[i + 1], left[i + 1], left[i]))
-        bm.faces.new((mid[i], right[i], right[i + 1], mid[i + 1]))
+        z = droop(x) + 0.18 * w
+        left.append(vert((x, w / 2, z), (t, 1.0)))
+        right.append(vert((x, -w / 2, z), (t, 0.0)))
+    bm.faces.new((mid[0], mid[1], left[0]))
+    bm.faces.new((mid[0], right[0], mid[1]))
+    for k in range(len(left) - 1):
+        i = k + 1
+        bm.faces.new((mid[i], mid[i + 1], left[k + 1], left[k]))
+        bm.faces.new((mid[i], right[k], right[k + 1], mid[i + 1]))
+    bm.faces.new((mid[n - 1], mid[n], left[-1]))
+    bm.faces.new((mid[n - 1], right[-1], mid[n]))
+    uv = bm.loops.layers.uv.new("UVMap")
+    for f in bm.faces:
+        for loop in f.loops:
+            loop[uv].uv = uv_of[loop.vert]
     mesh = bpy.data.meshes.new(name)
     bm.to_mesh(mesh)
     bm.free()
@@ -321,11 +341,35 @@ def place(obj, origin, direction, roll=0.0):
     obj.matrix_world = Matrix.Translation(origin) @ q.to_matrix().to_4x4() @ Matrix.Rotation(roll, 4, "X")
 
 
-def build_plant(variant, seed):
+def leaf_texture(base_hex, seed, w=512, h=256):
+    """Leaflet texture: u along the leaflet (base to tip), v across it. Lighter
+    midrib and lateral veins running toward the tip, soft mottling, slightly
+    paler margins."""
+    u = np.linspace(0, 1, w)[None, :] * np.ones((h, 1))
+    v = np.linspace(1, 0, h)[:, None] * np.ones((1, w))
+    base = rgb(base_hex)
+    vein_col = np.clip(base * 1.35 + np.array([0.05, 0.06, 0.0]), 0, 1)
+    d = np.abs(v - 0.5)                                    # distance from the midrib
+    midrib = np.exp(-(d / (0.012 * (1.15 - u))) ** 2)
+    veins = np.zeros_like(u)
+    for k in range(9):                                     # paired lateral veins
+        u0 = 0.06 + k * 0.1
+        along = u - u0 - d * 0.9                           # run outward toward the tip
+        veins = np.maximum(veins, np.exp(-(along / 0.006) ** 2) * (u > u0) * (d < 0.47))
+    tone = fbm(h, w, 4, seed) - 0.5
+    col = base[None, None, :] * (1 + 0.18 * tone[..., None])
+    col = col * (1 - 0.10 * np.clip((d - 0.38) * 8, 0, 1))[..., None]
+    col = col + (vein_col - base) * (0.85 * midrib + 0.45 * veins)[..., None]
+    return np.clip(col, 0, 1)
+
+
+def build_plant(variant, seed, tex_dir):
     rng = random.Random(seed)
-    leaf_ms = [ac.material("tomato_leaf", "#2B6420", roughness=0.5),
-               ac.material("tomato_leaf_dark", "#22561A", roughness=0.52),
-               ac.material("tomato_leaf_light", "#357226", roughness=0.48)]
+    leaf_ms = []
+    for name, hexs, rough in (("tomato_leaf", "#2B6420", 0.5), ("tomato_leaf_dark", "#22561A", 0.52),
+                              ("tomato_leaf_light", "#357226", 0.48)):
+        img = save_image(leaf_texture(hexs, seed=len(leaf_ms) + 41), tex_dir / f"{name}.png")
+        leaf_ms.append(textured_material(name, img, roughness=rough))
     stem_m = ac.material("tomato_stem", "#3F6E26", roughness=0.65)
     bamboo = ac.material("bamboo", "#C7A66A", roughness=0.55)
     node_m = ac.material("bamboo_node", "#A98A52", roughness=0.6)
@@ -698,7 +742,7 @@ def main():
     plants = {}
     for variant, seed in (("a", 101), ("b", 202), ("c", 303)):
         ac.reset_scene()
-        parts, sites, height = build_plant(variant, seed)
+        parts, sites, height = build_plant(variant, seed, MODELS / f"tomato_plant_{variant}" / "meshes")
         name = f"tomato_plant_{variant}"
         plants[name] = (sites, height)
         write_model(name, parts, plant_sdf(name, height),

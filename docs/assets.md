@@ -143,6 +143,7 @@ Each fruit has:
 **Model origin is the knuckle.** The world attaches each fruit to its plant there with a detachable joint, and cutting releases it. The SDF also has a `cut_point` frame halfway down the pedicel. Collision is a sphere at 95% of the radius.
 
 **Plants** (`tomato_plant_a/b/c`):
+- Leaflets carry a generated texture (midrib, lateral veins, mottling, paler margins), in three green variants.
 - Staked indeterminate plants, 1.25–1.5 m tall, tied to a bamboo stake with jute.
 - Compound leaves with 4–5 pairs of serrated leaflets, plus small interstitial leaflets.
 - A truss every third node, facing the plant's −y side (the harvest face). Trusses ripen from the bottom up, as real plants do.
@@ -201,6 +202,17 @@ python -m venv .venv
 
 ## How it was checked
 
+- **Asset QA:** `tools/qa/check_assets.py` runs over every mesh. It checks:
+  - every file parses
+  - no NaN coordinates
+  - fewer than 0.5% zero-area triangles
+  - sizes plausible in metres
+  - normals present
+  - material and texture files exist, with relative paths (so they work on Linux)
+  - GLB files are valid with embedded textures
+  - every `package://` and `model://` reference resolves
+
+  Result on 31 Oct 2026: 29 meshes, 0 warnings, 0 failures.
 - **SCARA kinematics:** forward kinematics against the STEP, to 0.002 mm (automatic on every build).
 - **URDF structure:** `write_urdf.py` checks every generated URDF has one root, no link with two parents, and every mesh file present.
   - Full robot: 31 links, 30 joints.

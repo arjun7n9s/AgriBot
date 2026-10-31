@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.2 (31 Oct 2026)
+
+### Added
+
+- **Asset QA:** `tools/qa/check_assets.py`, a quality gate for every mesh and model reference.
+- **Leaf textures:** leaflets now carry a generated texture (midrib, veins, mottling).
+- **CLAUDE.md:** working rules and next steps, for continuing on the Ubuntu laptop.
+
+### Fixed
+
+- **Plant leaflet tips:** the tips no longer produce zero-area triangles (about 4% of plant triangles before).
+- **Export cleanup:** every export now removes degenerate geometry.
+
 ## 0.1.1 (31 Oct 2026)
 
 ### Added

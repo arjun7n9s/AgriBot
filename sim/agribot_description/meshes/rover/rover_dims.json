@@ -1,0 +1,72 @@
+{
+  "units": "metres; base_link midway between axles at axle height, x forward, z up",
+  "measured": {
+    "length": 1.2,
+    "width": 0.7,
+    "height": 0.8,
+    "seat": 0.5,
+    "tyre_d": 0.38,
+    "tyre_w": 0.15
+  },
+  "assumed": {
+    "wheelbase": 0.72,
+    "track": 0.55,
+    "steer_limit_deg": 25
+  },
+  "wheel_radius": 0.19,
+  "deck_z": 0.31,
+  "ground_z": -0.19,
+  "mounts": {
+    "front_camera": [
+      0.58,
+      0,
+      0.36
+    ],
+    "rear_camera": [
+      -0.585,
+      0,
+      0.29
+    ],
+    "scout_mast": [
+      -0.5,
+      0.2,
+      0.335
+    ],
+    "scara_mast": [
+      -0.12,
+      -0.3,
+      -0.11
+    ],
+    "harvest_crate": [
+      -0.36,
+      0.02,
+      0.335
+    ],
+    "imu": [
+      0.0,
+      0.0,
+      0.26
+    ]
+  },
+  "scara_mast_pin_heights_above_ground": [
+    0.18,
+    0.36,
+    0.54,
+    0.72,
+    0.9
+  ],
+  "collision": {
+    "body": {
+      "size": [
+        1.14,
+        0.51,
+        0.55
+      ],
+      "xyz": [
+        0,
+        0,
+        0.20500000000000002
+      ]
+    }
+  }
+}

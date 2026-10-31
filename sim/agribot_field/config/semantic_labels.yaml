@@ -1,0 +1,9 @@
+# Semantic label ids for segmentation cameras and the detector fallback.
+background: 0
+tomato_green: 1
+tomato_half: 2
+tomato_ripe: 3
+tomato_plant: 10
+raised_bed: 20
+soil: 21
+rover: 30

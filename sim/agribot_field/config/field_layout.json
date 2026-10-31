@@ -1,0 +1,13 @@
+{
+  "bed_top": 0.9,
+  "bed_base": 1.1,
+  "bed_h": 0.15,
+  "furrow": 0.9,
+  "pitch": 2.0,
+  "plant_lines": [
+    -0.3,
+    0.3
+  ],
+  "plant_spacing": 0.45,
+  "segment": 2.7
+}

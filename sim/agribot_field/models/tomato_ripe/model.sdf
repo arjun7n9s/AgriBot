@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<sdf version="1.9">
+  <model name="tomato_ripe">
+    <!-- Model origin = the knuckle (abscission zone). The world attaches the
+         fruit to its plant here with a detachable joint; cutting the distal
+         pedicel releases it. Semantic label 3 (config/semantic_labels.yaml). -->
+    <link name="fruit">
+      <inertial>
+        <pose>0 0 -0.03638 0 0 0</pose>
+        <mass>0.095</mass>
+        <inertia><ixx>3.652e-05</ixx><iyy>3.652e-05</iyy><izz>3.652e-05</izz>
+                 <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="body">
+        <pose>0 0 -0.03638 0 0 0</pose>
+        <geometry><sphere><radius>0.0294</radius></sphere></geometry>
+        <surface><friction><ode><mu>0.8</mu><mu2>0.8</mu2></ode></friction>
+                 <bounce><restitution_coefficient>0.05</restitution_coefficient></bounce></surface>
+      </collision>
+      <visual name="visual">
+        <geometry><mesh><uri>model://tomato_ripe/meshes/tomato_ripe.obj</uri></mesh></geometry>
+      </visual>
+    </link>
+    <frame name="cut_point"><pose relative_to="fruit">0 0 -0.0060 0 0 0</pose></frame>
+  </model>
+</sdf>

@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<sdf version="1.9">
+  <model name="soil_tile">
+    <static>true</static>
+    <!-- 4 m x 4 m furrow soil, visual only; the world supplies the ground plane. -->
+    <link name="tile">
+      <visual name="visual">
+        <geometry><mesh><uri>model://soil_tile/meshes/soil_tile.obj</uri></mesh></geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>

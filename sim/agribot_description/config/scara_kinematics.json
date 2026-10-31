@@ -1,0 +1,253 @@
+{
+  "source": "media/scara-arm/HowToMechatronics/scara-robot-arm/SCARA Robot 3D Model.STEP",
+  "units": "metres, radians",
+  "link_lengths": {
+    "L1": 0.22798,
+    "L2": 0.13649
+  },
+  "joints": {
+    "j1": {
+      "type": "revolute",
+      "parent": "base_link",
+      "child": "column_link",
+      "xyz": [
+        0,
+        0,
+        0.035
+      ],
+      "rpy": [
+        0,
+        0,
+        0
+      ],
+      "axis": [
+        0,
+        0,
+        1
+      ],
+      "limit": [
+        -2.9670597283903604,
+        2.9670597283903604
+      ],
+      "limit_source": "assumed; set from the J1 home switch and cabling"
+    },
+    "z": {
+      "type": "prismatic",
+      "parent": "column_link",
+      "child": "carriage_link",
+      "xyz": [
+        0,
+        0,
+        0.0625
+      ],
+      "rpy": [
+        0,
+        0,
+        0
+      ],
+      "axis": [
+        0,
+        0,
+        1
+      ],
+      "limit": [
+        0.0,
+        0.249
+      ],
+      "limit_source": "part clearances in the STEP: platform on base cover, J2 motor at the Z top limit switch"
+    },
+    "j2": {
+      "type": "revolute",
+      "parent": "carriage_link",
+      "child": "arm2_link",
+      "xyz": [
+        0.22797702735144174,
+        0,
+        -0.019
+      ],
+      "rpy": [
+        0,
+        0,
+        0
+      ],
+      "axis": [
+        0,
+        0,
+        1
+      ],
+      "limit": [
+        -2.6179938779914944,
+        2.6179938779914944
+      ],
+      "limit_source": "assumed; check Arm 2 against the column"
+    },
+    "j3": {
+      "type": "revolute",
+      "parent": "arm2_link",
+      "child": "wrist_link",
+      "xyz": [
+        0.1364883328347152,
+        0,
+        -0.039
+      ],
+      "rpy": [
+        0,
+        0,
+        0
+      ],
+      "axis": [
+        0,
+        0,
+        1
+      ],
+      "limit": [
+        -2.6179938779914944,
+        2.6179938779914944
+      ],
+      "limit_source": "assumed; keeps the tool cables from winding up"
+    },
+    "tool_flange": {
+      "type": "fixed",
+      "parent": "wrist_link",
+      "child": "tool_flange",
+      "xyz": [
+        0,
+        0,
+        -0.018
+      ],
+      "rpy": [
+        0,
+        0,
+        0
+      ]
+    },
+    "stock_gripper_tool0": {
+      "type": "fixed",
+      "parent": "stock_gripper",
+      "child": "tool0",
+      "xyz": [
+        0,
+        0,
+        -0.115
+      ],
+      "rpy": [
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  "inertial": {
+    "arm2_link": {
+      "mass": 0.569879,
+      "com": [
+        0.0691927,
+        8.7085e-07,
+        -0.0313833
+      ],
+      "ixx": 0.000428514,
+      "iyy": 0.00300115,
+      "izz": 0.00292892,
+      "ixy": 2.76917e-07,
+      "ixz": -4.59967e-05,
+      "iyz": -2.11427e-07
+    },
+    "base_link": {
+      "mass": 0.833682,
+      "com": [
+        -0.0712791,
+        0.00956844,
+        0.0371431
+      ],
+      "ixx": 0.00124008,
+      "iyy": 0.00418148,
+      "izz": 0.00491594,
+      "ixy": 0.000315526,
+      "ixz": 0.000159535,
+      "iyz": -0.000150768
+    },
+    "carriage_link": {
+      "mass": 0.946238,
+      "com": [
+        0.0811465,
+        -8.9567e-07,
+        0.0295613
+      ],
+      "ixx": 0.0011079,
+      "iyy": 0.0110148,
+      "izz": 0.0109244,
+      "ixy": 7.57917e-07,
+      "ixz": 0.00164601,
+      "iyz": -3.88306e-07
+    },
+    "column_link": {
+      "mass": 1.80729,
+      "com": [
+        0.00742286,
+        3.44212e-06,
+        0.228887
+      ],
+      "ixx": 0.0462066,
+      "iyy": 0.0465499,
+      "izz": 0.00324059,
+      "ixy": -1.87405e-09,
+      "ixz": -0.00165238,
+      "iyz": -1.66436e-07
+    },
+    "stock_gripper": {
+      "mass": 0.255159,
+      "com": [
+        -0.0091636,
+        0.00862731,
+        -0.047921
+      ],
+      "ixx": 0.00025594,
+      "iyy": 0.000248573,
+      "izz": 0.000235372,
+      "ixy": -5.56302e-05,
+      "ixz": -3.44136e-06,
+      "iyz": 3.42056e-06
+    },
+    "wrist_link": {
+      "mass": 0.0372179,
+      "com": [
+        0.000443116,
+        -0.000165271,
+        -7.39752e-05
+      ],
+      "ixx": 1.9538e-05,
+      "iyy": 1.94947e-05,
+      "izz": 2.00665e-05,
+      "ixy": -2.60341e-08,
+      "ixz": 1.66016e-07,
+      "iyz": -7.77842e-08
+    }
+  },
+  "inertial_source": "mesh volumes x effective density: printed 560 kg/m3, metal 7850 kg/m3, motor 3800 kg/m3, belt 1200 kg/m3, switch 1500 kg/m3. Estimates; weigh the real parts.",
+  "step_pose": {
+    "j1": 0.29165,
+    "z": 0.1661,
+    "j2": -0.96438,
+    "j3": 0.0
+  },
+  "check_points_step_mm": {
+    "J2": [
+      260.85,
+      65.55
+    ],
+    "J3": [
+      367.6,
+      -19.5
+    ],
+    "tool0": [
+      367.6,
+      -19.5,
+      37.6
+    ]
+  },
+  "step_frame_from_base_link_mm": [
+    42.5,
+    0.0,
+    -35.0
+  ]
+}

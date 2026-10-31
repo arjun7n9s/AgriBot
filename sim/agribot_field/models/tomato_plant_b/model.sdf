@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<sdf version="1.9">
+  <model name="tomato_plant_b">
+    <static>true</static>
+    <!-- Stem, leaves, trusses and the bamboo stake. Fruit are separate models,
+         spawned at the sites in fruit_sites.json (plant frame) and attached with
+         detachable joints. Only the stem and stake collide; leaves are visual
+         so the arm can push through them. -->
+    <link name="plant">
+      <collision name="stem">
+        <pose>0 0 0.720 0 0 0</pose>
+        <geometry><cylinder><radius>0.008</radius><length>1.441</length></cylinder></geometry>
+      </collision>
+      <collision name="stake">
+        <pose>0 0.045 0.820 0 0 0</pose>
+        <geometry><cylinder><radius>0.012</radius><length>1.641</length></cylinder></geometry>
+      </collision>
+      <visual name="visual">
+        <geometry><mesh><uri>model://tomato_plant_b/meshes/tomato_plant_b.obj</uri></mesh></geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>

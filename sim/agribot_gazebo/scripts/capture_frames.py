@@ -16,7 +16,8 @@ from sensor_msgs.msg import Image
 from std_msgs.msg import String
 
 TOPICS = {"front": "/front_camera/image", "scout": "/scout_camera/image",
-          "arm_rgb": "/arm_camera/image", "arm_depth": "/arm_camera/depth_image"}
+          "arm_rgb": "/arm_camera/image", "arm_depth": "/arm_camera/depth_image",
+          "row_follower": "/row_follower/debug_image", "fruit_detector": "/fruit/debug_image"}
 
 
 class Capture(Node):

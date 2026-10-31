@@ -11,7 +11,9 @@ install(DIRECTORY urdf config worlds launch rviz
 
 install(PROGRAMS
   scripts/drive_node.py
-  scripts/harvest_demo.py
+  scripts/row_follower.py
+  scripts/fruit_detector.py
+  scripts/harvest_mission.py
   scripts/capture_frames.py
   DESTINATION lib/${PROJECT_NAME})
 

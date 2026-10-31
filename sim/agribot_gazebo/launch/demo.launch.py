@@ -1,7 +1,7 @@
 """AgriBOT tomato-row demo in Gazebo Fortress.
 
     ros2 launch agribot_gazebo demo.launch.py                 # world, robot, controllers, bridge, GUI
-    ros2 launch agribot_gazebo demo.launch.py harvest:=true   # ... and run the harvest demo
+    ros2 launch agribot_gazebo demo.launch.py harvest:=true   # ... and run the harvest mission
     ros2 launch agribot_gazebo demo.launch.py gui:=false rviz:=true
 
 Starts the Gazebo server with worlds/demo_row.sdf, spawns the robot from
@@ -86,10 +86,13 @@ def generate_launch_description():
          "tool_controller", "scout_controller"])]
 
     drive = Node(package="agribot_gazebo", executable="drive_node.py", output="screen", parameters=[use_sim_time])
+    row_follower = Node(package="agribot_gazebo", executable="row_follower.py", output="screen",
+                        parameters=[use_sim_time])
+    detector = Node(package="agribot_gazebo", executable="fruit_detector.py", output="screen",
+                    parameters=[use_sim_time])
     harvest = TimerAction(period=14.0, actions=[Node(
-        package="agribot_gazebo", executable="harvest_demo.py", output="screen",
-        parameters=[use_sim_time, {"spawn_x": SPAWN["x"], "spawn_y": SPAWN["y"],
-                                   "targets_file": os.path.join(share, "worlds", "demo_row_targets.json"),
+        package="agribot_gazebo", executable="harvest_mission.py", output="screen",
+        parameters=[use_sim_time, {"targets_file": os.path.join(share, "worlds", "demo_row_targets.json"),
                                    "picks": LaunchConfiguration("picks"),
                                    "capture_dir": LaunchConfiguration("capture_dir")}],
         condition=IfCondition(LaunchConfiguration("harvest")))])
@@ -100,5 +103,6 @@ def generate_launch_description():
                 arguments=["-d", os.path.join(share, "rviz", "demo.rviz")],
                 condition=IfCondition(LaunchConfiguration("rviz")))
 
-    return LaunchDescription(args + [plugin_path, server, gui, rsp, spawn, bridge, drive, rviz, capture, harvest]
+    return LaunchDescription(args + [plugin_path, server, gui, rsp, spawn, bridge, drive, row_follower, detector,
+                                     rviz, capture, harvest]
                              + controllers)

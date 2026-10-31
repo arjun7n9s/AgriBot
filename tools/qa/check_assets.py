@@ -93,6 +93,10 @@ def check_obj(path):
             continue
         text = mtl.read_text(errors="replace")
         defined = set(re.findall(r"^newmtl (.+)$", text, re.M))
+        for block in re.split(r"(?m)^(?=newmtl )", text):
+            if "map_Kd" in block and not re.search(r"(?m)^Kd ", block):
+                fail(f"{mtl.name}: textured material without Kd renders black in Gazebo "
+                     f"({block.split()[1]})")
         if usemtl - defined:
             fail(f"{path.name}: materials not in MTL: {usemtl - defined}")
         for tex in re.findall(r"^\s*map_\w+\s+(.+)$", text, re.M):

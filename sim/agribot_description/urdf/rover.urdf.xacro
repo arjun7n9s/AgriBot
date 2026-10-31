@@ -182,6 +182,26 @@
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry><mesh filename="package://agribot_description/meshes/rover/visual/harvest_crate.obj"/></geometry>
     </visual>
+    <collision name="floor">
+      <origin xyz="0 0 0.004" rpy="0 0 0"/>
+      <geometry><box size="0.4 0.3 0.008"/></geometry>
+    </collision>
+    <collision name="wall_left">
+      <origin xyz="0 0.146 0.1" rpy="0 0 0"/>
+      <geometry><box size="0.4 0.008 0.2"/></geometry>
+    </collision>
+    <collision name="wall_right">
+      <origin xyz="0 -0.146 0.1" rpy="0 0 0"/>
+      <geometry><box size="0.4 0.008 0.2"/></geometry>
+    </collision>
+    <collision name="wall_front">
+      <origin xyz="0.196 0 0.1" rpy="0 0 0"/>
+      <geometry><box size="0.008 0.3 0.2"/></geometry>
+    </collision>
+    <collision name="wall_rear">
+      <origin xyz="-0.196 0 0.1" rpy="0 0 0"/>
+      <geometry><box size="0.008 0.3 0.2"/></geometry>
+    </collision>
   </link>
   <joint name="${prefix}harvest_crate_joint" type="fixed">
     <parent link="${prefix}base_link"/>

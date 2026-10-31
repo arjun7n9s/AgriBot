@@ -251,6 +251,8 @@ def build_fruit(kind, out_dir, seed=1):
 def fruit_sdf(kind, geo):
     spec = FRUIT[kind]
     m, R = spec["mass"], geo["R"]
+    # Sphere sized by the vertical semi-axis: it matches the fruit's real top
+    # and bottom (a sphere of the full radius pokes above the calyx).
     i = 0.4 * m * R * R
     return f"""<?xml version="1.0"?>
 <sdf version="1.9">
@@ -267,9 +269,13 @@ def fruit_sdf(kind, geo):
       </inertial>
       <collision name="body">
         <pose>0 0 {geo['zc']:.5f} 0 0 0</pose>
-        <geometry><sphere><radius>{R * 0.95:.4f}</radius></sphere></geometry>
+        <geometry><sphere><radius>{geo['c'] * 0.95:.4f}</radius></sphere></geometry>
         <surface><friction><ode><mu>0.8</mu><mu2>0.8</mu2></ode></friction>
-                 <bounce><restitution_coefficient>0.05</restitution_coefficient></bounce></surface>
+                 <bounce><restitution_coefficient>0.05</restitution_coefficient></bounce>
+                 <!-- Collision group 0x04 (fruit on the plant): the robot (0x01, 0x03) passes
+                      through it. A cut fruit is respawned in group 0x02, which the cutter
+                      cradle and the crate catch (agribot_gazebo/scripts/harvest_demo.py). -->
+                 <contact><collide_bitmask>0x04</collide_bitmask></contact></surface>
       </collision>
       <visual name="visual">
         <geometry><mesh><uri>model://{kind}/meshes/{kind}.obj</uri></mesh></geometry>

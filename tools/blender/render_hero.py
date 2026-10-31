@@ -20,7 +20,7 @@ from mathutils import Matrix
 
 HERE = pathlib.Path(__file__).parent
 sys.path.insert(0, str(HERE))
-sys.path.insert(0, str(HERE.parent / "description"))
+sys.path.insert(0, str(HERE.parents[1] / "sim/agribot_gazebo/agribot_gazebo"))
 import agri_common as ac  # noqa: E402
 import build_field as bf  # noqa: E402
 from urdf_fk import Robot, transform, rpy_matrix  # noqa: E402

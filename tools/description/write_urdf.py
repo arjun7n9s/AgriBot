@@ -33,7 +33,8 @@ ROV = json.loads((PKG / "meshes/rover/rover_dims.json").read_text())
 SCARA_LINKS = ["base_link", "column_link", "carriage_link", "arm2_link", "wrist_link"]
 # effort (N*m or N), velocity (rad/s or m/s), damping, friction. Estimates from the
 # procured motors (docs/already-procured.md) and the belt and lead-screw ratios.
-SCARA_DYN = {"j1": (2.0, 1.0, 0.5, 0.05), "z": (100.0, 0.05, 20.0, 1.0),
+# Z: 8 mm-lead screw at ~750 rpm gives 0.1 m/s.
+SCARA_DYN = {"j1": (2.0, 1.0, 0.5, 0.05), "z": (100.0, 0.1, 2.0, 0.2),
              "j2": (3.0, 1.2, 0.3, 0.05), "j3": (0.8, 2.0, 0.05, 0.01)}
 MAST_PINS = [0.10 + 0.18 * i for i in range(5)]     # must match build_rover.py
 
@@ -169,7 +170,8 @@ def cutter(p):
              + mesh_visual("cutter/visual/cutter_blade.obj"))
     door = (box_inertial(0.03, (0.104, 0.083, 0.011), com=(-0.052, 0, 0.004), note="estimate")
             + mesh_visual("cutter/visual/cutter_door.obj")
-            + box_collision(cb["door"]["size"], cb["door"]["xyz"]))
+            + box_collision(cb["door"]["size"], cb["door"]["xyz"], name="floor")
+            + box_collision(cb["lip"]["size"], cb["lip"]["xyz"], name="lip"))
     bj, dj, cam = CUT["blade_joint"], CUT["door_joint"], CUT["camera_link"]
     return (link(f"{p}cutter_body", body) + link(f"{p}cutter_blade", blade)
             + link(f"{p}cutter_door", door) + link(f"{p}cut_point") + link(f"{p}tool0")
@@ -180,7 +182,7 @@ def cutter(p):
                     (0.01, 0.002), note="0 = open, lower limit = fully closed across the throat")
             + joint(f"{p}cutter_door_joint", "revolute", f"{p}cutter_body", f"{p}cutter_door",
                     dj["xyz"], dj["rpy"], dj["axis"], (dj["limit"][0], dj["limit"][1], 0.9, 3.0),
-                    (0.01, 0.002), note="0 = closed; positive opens the trap door")
+                    (0.01, 0.002), note="0 = closed; positive swings the floor down to drop the fruit")
             + joint(f"{p}cut_point_joint", "fixed", f"{p}cutter_body", f"{p}cut_point", CUT["cut_point"],
                     note="centre of the 6 mm throat: the pedicel is cut here")
             + joint(f"{p}tool0_joint", "fixed", f"{p}cutter_body", f"{p}tool0", CUT["cut_point"])
@@ -221,7 +223,12 @@ def rover(p):
                       (xyz[0] + 0.022 * math.cos(yaw), xyz[1], xyz[2]), (0, 0, yaw))]
     out += [link(f"{p}imu_link"), joint(f"{p}imu_joint", "fixed", f"{p}base_link", f"{p}imu_link", m["imu"]),
             link(f"{p}harvest_crate", box_inertial(0.6, (0.4, 0.3, 0.2), com=(0, 0, 0.1), note="estimate, empty")
-                 + mesh_visual("rover/visual/harvest_crate.obj")),
+                 + mesh_visual("rover/visual/harvest_crate.obj")
+                 + box_collision((0.40, 0.30, 0.008), (0, 0, 0.004), name="floor")
+                 + box_collision((0.40, 0.008, 0.20), (0, 0.146, 0.10), name="wall_left")
+                 + box_collision((0.40, 0.008, 0.20), (0, -0.146, 0.10), name="wall_right")
+                 + box_collision((0.008, 0.30, 0.20), (0.196, 0, 0.10), name="wall_front")
+                 + box_collision((0.008, 0.30, 0.20), (-0.196, 0, 0.10), name="wall_rear")),
             joint(f"{p}harvest_crate_joint", "fixed", f"{p}base_link", f"{p}harvest_crate", m["harvest_crate"]),
             link(f"{p}scout_mast", box_inertial(0.4, (0.04, 0.04, 0.5), com=(0, 0, 0.25), note="estimate")
                  + mesh_visual("rover/visual/scout_mast.obj")),

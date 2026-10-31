@@ -203,6 +203,11 @@ def main():
         tris = (pts[:, :3] / 1000.0).reshape(-1, 3, 3)          # mm -> m
         groups.setdefault((link, material_of(name)), []).append(tris)
 
+    # Start clean: a stale <link>__<material>.stl from an earlier link split would
+    # otherwise be picked up by build_scara.py (it once put the gripper servo in the wrist).
+    if OUT.exists():
+        for old in OUT.glob("*.stl"):
+            old.unlink()
     OUT.mkdir(parents=True, exist_ok=True)
     inertial = {}
     for (link, mat), parts in sorted(groups.items()):

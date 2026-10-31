@@ -38,8 +38,8 @@
       <geometry><box size="0.0407 0.0197 0.037"/></geometry>
     </collision>
     <collision name="camera">
-      <origin xyz="0.03 -0.03 -0.026" rpy="0 0 0"/>
-      <geometry><box size="0.023 0.042 0.042"/></geometry>
+      <origin xyz="-0.002 -0.07 -0.084" rpy="0 0 0"/>
+      <geometry><box size="0.03 0.046 0.042"/></geometry>
     </collision>
   </link>
   <link name="${prefix}cutter_blade">
@@ -65,9 +65,13 @@
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry><mesh filename="package://agribot_description/meshes/cutter/visual/cutter_door.obj"/></geometry>
     </visual>
-    <collision>
+    <collision name="floor">
       <origin xyz="-0.052 0 0.0065" rpy="0 0 0"/>
       <geometry><box size="0.104 0.083 0.011"/></geometry>
+    </collision>
+    <collision name="lip">
+      <origin xyz="0.002 0 0.015" rpy="0 0 0"/>
+      <geometry><box size="0.004 0.083 0.024"/></geometry>
     </collision>
   </link>
   <link name="${prefix}cut_point"/>
@@ -94,11 +98,11 @@
     <dynamics damping="0.01" friction="0.002"/>
   </joint>
   <joint name="${prefix}cutter_door_joint" type="revolute">
-    <!-- 0 = closed; positive opens the trap door -->
+    <!-- 0 = closed; positive swings the floor down to drop the fruit -->
     <parent link="${prefix}cutter_body"/>
     <child link="${prefix}cutter_door"/>
     <origin xyz="0.098 0 -0.14" rpy="0 0 0"/>
-    <axis xyz="0 1 0"/>
+    <axis xyz="0 -1 0"/>
     <limit lower="0" upper="1.309" effort="0.9" velocity="3"/>
     <dynamics damping="0.01" friction="0.002"/>
   </joint>
@@ -117,7 +121,7 @@
     <!-- RGB-D camera front face, pitched down -->
     <parent link="${prefix}cutter_body"/>
     <child link="${prefix}arm_camera_link"/>
-    <origin xyz="0.0409004 -0.03 -0.0299674" rpy="0 0.349066 0"/>
+    <origin xyz="0.00820322 -0.0645749 -0.085011" rpy="0 0.0872665 0.488692"/>
   </joint>
 </xacro:macro>
 </robot>

@@ -50,7 +50,10 @@ P = dict(
     foam_t=8,
     cradle_half=42, wall_t=3, wall_top=-98,
     hinge=(98, -140),                    # trap-door hinge (x, z), axis along y
-    camera=(30, -30, -26), camera_pitch_deg=20,
+    # Side-mounted RGB-D camera outside the left wall, at fruit height, turned in
+    # toward the cradle: it sees the target ahead and the fruit once caught. (A
+    # first version above the top plate looked straight down onto the plate.)
+    camera=(-2, -70, -84), camera_pitch_deg=5, camera_yaw_deg=28,
 )
 
 
@@ -123,20 +126,20 @@ def body_parts():
                             loc=mm(70, y, P["plate_top"] - P["plate_t"] - 3.5),
                             mat=ac.pal("switch"), bevel=0.0006))
 
-    # Arm RGB-D camera on a bracket, looking forward and down.
+    # Arm RGB-D camera on a side bracket (see P["camera"]).
     cx, cy, cz = P["camera"]
-    pitch = math.radians(P["camera_pitch_deg"])
-    parts.append(ac.box("camera_bracket", mm(10, 20, 20), loc=mm(cx - 14, cy, cz - 6),
+    pitch, yaw = math.radians(P["camera_pitch_deg"]), math.radians(P["camera_yaw_deg"])
+    parts.append(ac.box("camera_bracket", mm(30, 26, 10), loc=mm(cx - 4, (cy + -45) / 2 - 2, cz - 26),
                         mat=green, bevel=0.0008))
-    cam = ac.box("arm_camera", mm(23, 42, 42), loc=mm(cx, cy, cz), rot=(0, pitch, 0),
+    cam = ac.box("arm_camera", mm(23, 42, 42), loc=mm(cx, cy, cz), rot=(0, pitch, yaw),
                  mat=black, bevel=0.0025, segments=4)
     parts.append(cam)
-    for i, dy in enumerate((-12, 0, 12)):
-        lx = cx + 11.6 * math.cos(pitch)
-        lz = cz - 11.6 * math.sin(pitch)
-        parts.append(ac.cylinder(f"lens_{i}", 0.0042 if dy else 0.0032, 0.0014,
-                                 loc=mm(lx, cy + dy, lz), rot=(0, math.radians(90) + pitch, 0),
-                                 mat=ac.pal("lens"), verts=32))
+    fwd = (math.cos(yaw) * math.cos(pitch), math.sin(yaw) * math.cos(pitch), -math.sin(pitch))
+    side = (-math.sin(yaw), math.cos(yaw), 0.0)
+    for i, d in enumerate((-12, 0, 12)):
+        lp = [c + 11.6 * f + d * s for c, f, s in zip((cx, cy, cz), fwd, side)]
+        parts.append(ac.cylinder(f"lens_{i}", 0.0042 if d else 0.0032, 0.0014, loc=mm(*lp),
+                                 rot=(0, math.radians(90) + pitch, yaw), mat=ac.pal("lens"), verts=32))
     return parts
 
 
@@ -168,7 +171,9 @@ def door_parts():
     pad = ac.box("foam_pad", mm(98, 2 * half - 4, P["foam_t"]),
                  loc=mm(-3 + 49 - hx, 0, P["floor_top"] + P["foam_t"] / 2 - hz), mat=foam,
                  bevel=0.002, segments=4)
-    lip = ac.box("soft_lip", mm(4, 2 * half, 9), loc=mm(100 - hx, 0, P["floor_top"] + 4.5 - hz),
+    # Soft TPU lip: stands 16 mm above the foam so a round fruit cannot roll out of
+    # the open front while the arm moves (the fruit enters over it before the cut).
+    lip = ac.box("soft_lip", mm(4, 2 * half, P["foam_t"] + 16), loc=mm(100 - hx, 0, P["floor_top"] + (P["foam_t"] + 16) / 2 - hz),
                  mat=tpu, bevel=0.0015, segments=4)
     return [floor, pad, lip]
 
@@ -196,11 +201,14 @@ def main():
         "blade_joint": {"xyz": mm(px, py, blade_z), "rpy": [0, 0, math.radians(P["blade_open_deg"])],
                         "axis": [0, 0, 1], "limit": [-math.radians(P["blade_stroke_deg"]), 0.0]},
         "door_joint": {"xyz": mm(P["hinge"][0], 0, P["hinge"][1]), "rpy": [0, 0, 0],
-                       "axis": [0, 1, 0], "limit": [0.0, math.radians(75)]},
+                       "axis": [0, -1, 0], "limit": [0.0, math.radians(75)]},   # +angle swings the floor down
         "cut_point": mm((P["throat_x0"] + P["throat_x1"]) / 2, 0, P["plate_top"] - P["plate_t"] / 2),
-        "camera_link": {"xyz": mm(cx + 11.6 * math.cos(math.radians(P["camera_pitch_deg"])), cy,
-                                  cz - 11.6 * math.sin(math.radians(P["camera_pitch_deg"]))),
-                        "rpy": [0, math.radians(P["camera_pitch_deg"]), 0]},
+        "camera_link": {"xyz": mm(*[c + 11.6 * f for c, f in zip(
+                            (cx, cy, cz),
+                            (math.cos(math.radians(P["camera_yaw_deg"])) * math.cos(math.radians(P["camera_pitch_deg"])),
+                             math.sin(math.radians(P["camera_yaw_deg"])) * math.cos(math.radians(P["camera_pitch_deg"])),
+                             -math.sin(math.radians(P["camera_pitch_deg"]))))]),
+                        "rpy": [0, math.radians(P["camera_pitch_deg"]), math.radians(P["camera_yaw_deg"])]},
         "cradle": {"floor_top_z": mm(P["floor_top"] + P["foam_t"])[0],
                    "inner_width": mm(2 * P["cradle_half"])[0],
                    "gap_plate_to_foam": mm(P["plate_top"] - P["plate_t"] - P["floor_top"] - P["foam_t"])[0]},
@@ -210,8 +218,9 @@ def main():
             "wall_right": {"size": mm(108, 3, 42), "xyz": mm(46, 43.5, -119)},
             "wall_left": {"size": mm(108, 3, 42), "xyz": mm(46, -43.5, -119)},
             "servo1": {"size": mm(40.7, 19.7, 37), "xyz": mm(26.3, 29.8, -25.5)},
-            "camera": {"size": mm(23, 42, 42), "xyz": mm(cx, cy, cz)},
+            "camera": {"size": mm(30, 46, 42), "xyz": mm(cx, cy, cz)},
             "door": {"size": mm(104, 83, 11), "xyz": mm(-52, 0, 6.5)},
+            "lip": {"size": mm(4, 83, 24), "xyz": mm(2, 0, 15)},
         },
     }
     (OUT / "cutter_frames.json").write_text(json.dumps(frames, indent=2))

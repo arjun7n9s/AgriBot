@@ -70,7 +70,16 @@ The SCARA base design is adapted from HowToMechatronics (see [CREDITS.md](../CRE
 
 ## Cutter (concept v0)
 
-A simulation model of the V-capture bypass cutter in [scara-redesign.md](scara-redesign.md): 40 mm mouth, 6 mm throat about 64 mm ahead of the J3 axis, hooked bypass blade on an inverted MG996R, cradle for fruit up to about 75 mm, foam floor, servo-driven trap door, IR break-beam, and the RGB-D camera pitched down 20°.
+A simulation model of the V-capture bypass cutter in [scara-redesign.md](scara-redesign.md):
+- 40 mm mouth, with a 6 mm throat about 64 mm ahead of the J3 axis
+- hooked bypass blade on an inverted MG996R
+- cradle for fruit up to about 75 mm, with a foam floor
+- soft lip standing 16 mm above the foam, so the fruit can't roll out while carried
+- servo-driven trap door, which swings down to drop the fruit
+- IR break-beam
+- RGB-D camera on a side mount at fruit height, turned 28° inward
+
+The lip and camera positions came out of the Gazebo tests ([simulation.md](simulation.md)).
 
 It is not a manufacturing design. Wall thicknesses, fasteners and the blade linkage are indicative.
 
@@ -140,7 +149,7 @@ Each fruit has:
 - a six-sepal calyx
 - the 12 mm distal pedicel and the knuckle (abscission zone)
 
-**Model origin is the knuckle.** The world attaches each fruit to its plant there with a detachable joint, and cutting releases it. The SDF also has a `cut_point` frame halfway down the pedicel. Collision is a sphere at 95% of the radius.
+**Model origin is the knuckle.** The world attaches each fruit to its plant there with a detachable joint, and cutting releases it. The SDF also has a `cut_point` frame halfway down the pedicel. Collision is a sphere at 95% of the vertical semi-axis, which matches the real top and bottom (a full-radius sphere poked above the calyx and into the cutter).
 
 **Plants** (`tomato_plant_a/b/c`):
 - Leaflets carry a generated texture (midrib, lateral veins, mottling, paler margins), in three green variants.

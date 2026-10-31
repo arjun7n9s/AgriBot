@@ -16,6 +16,7 @@ does that conversion and engines convert back on import.
 import math
 import os
 import pathlib
+import re
 
 import bpy
 import bmesh
@@ -354,6 +355,26 @@ def export_obj(objs, path):
                           forward_axis="Y", up_axis="Z", apply_modifiers=True,
                           export_materials=True, export_normals=True, export_uv=True,
                           export_triangulated_mesh=True, path_mode="RELATIVE")
+    fix_mtl(path.with_suffix(".mtl"))
+
+
+def fix_mtl(mtl):
+    """Blender omits Kd when the base colour comes from a texture; Gazebo then
+    multiplies the texture by a black diffuse. Add Kd 1 1 1 to such materials."""
+    if not mtl.exists():
+        return
+    blocks = re.split(r"(?m)^(?=newmtl )", mtl.read_text())
+    out = []
+    for b in blocks:
+        if b.startswith("newmtl") and "map_Kd" in b and not re.search(r"(?m)^Kd ", b):
+            first, rest = b.split(NL, 1)
+            b = first + NL + "Kd 1.000000 1.000000 1.000000" + NL + rest
+        out.append(b)
+    mtl.write_text("".join(out), newline=NL)
+
+
+NL = chr(10)
+
 
 
 def export_stl(objs, path):

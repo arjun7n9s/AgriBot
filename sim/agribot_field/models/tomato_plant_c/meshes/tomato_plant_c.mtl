@@ -32,6 +32,7 @@ d 1.000000
 illum 2
 
 newmtl tomato_leaf
+Kd 1.000000 1.000000 1.000000
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
 Ks 0.500000 0.500000 0.500000
@@ -42,6 +43,7 @@ illum 2
 map_Kd tomato_leaf.png
 
 newmtl tomato_leaf_dark
+Kd 1.000000 1.000000 1.000000
 Ns 230.400024
 Ka 1.000000 1.000000 1.000000
 Ks 0.500000 0.500000 0.500000
@@ -52,6 +54,7 @@ illum 2
 map_Kd tomato_leaf_dark.png
 
 newmtl tomato_leaf_light
+Kd 1.000000 1.000000 1.000000
 Ns 270.399994
 Ka 1.000000 1.000000 1.000000
 Ks 0.500000 0.500000 0.500000

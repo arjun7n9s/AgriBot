@@ -1,0 +1,5 @@
+# Python packages for the asset tools (tools/scara, tools/description).
+# Blender 5.1 runs the tools/blender scripts with its own bundled Python.
+numpy>=2.0
+cadquery-ocp>=7.8      # OpenCascade bindings: reads the SCARA STEP
+xacro>=2.0             # optional: expand the xacro files outside ROS for checks

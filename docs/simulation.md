@@ -10,6 +10,8 @@ No target comes from the world file. Navigation and targeting use only the robot
 
 **Full run:** [media/agribot_demo.mp4](https://github.com/arjun7n9s/AgriBot/blob/main/docs/media/agribot_demo.mp4), 4 min 14 s at 1280×720, three picks.
 
+The video, the GIF and the stills below are from the 0.3.0 run, before the scenery (drip lines, crate stacks, fence, tree line) was added. The camera frames are from the 0.4.0 run.
+
 | Drive | Approach | Cut |
 | --- | --- | --- |
 | ![](media/stills/drive.png) | ![](media/stills/approach.png) | ![](media/stills/cut.png) |
@@ -31,44 +33,40 @@ No target comes from the world file. Navigation and targeting use only the robot
 
 ## Results
 
-From a clean run (`picks:=3`, nothing else running). The full snapshot is in [media/ros2/ros2_report.md](media/ros2/ros2_report.md).
+Measured on the 0.4.0 stack (autonomy in its own package, the `Harvest` action, the `/crate/verify` service). `stop.sh` ran before each run, so nothing else was alive. The full snapshot is in [media/ros2/ros2_report.md](media/ros2/ros2_report.md).
 
 | | |
 | --- | --- |
-| Picks verified in the crate | **3 of 3** (fruit position read back from Gazebo) |
-| What was picked | one ripe and two half-ripe fruit: the colour rule cannot tell them apart yet |
-| Detection to pedicel | the estimate fell 6, 16 and 24 mm from the pedicel actually cut. The cut model accepts up to 3 cm; the real cutter's throat is 6 mm, so this must improve before the hardware |
+| Picks verified in the crate | **3 of 3** with `picks:=3`, and 1 of 1 in a separate headless run (fruit position read back from Gazebo) |
+| What was picked | two ripe and one half-ripe fruit: the colour rule cannot tell them apart yet |
+| Detection to pedicel | 16, 7 and 13 mm from the pedicel actually cut (0.3.0: 6, 16, 24 mm). The cut model accepts up to 3 cm; the real cutter's throat is 6 mm, so this must improve before the hardware |
 | Cutter on the estimated pedicel | **0.1 mm**, measured: forward kinematics of the joint states |
-| Detection steadiness | each fruit seen in 24 of 24 frames during the 1.5 s confirmation |
-| Row following | from a 4° heading error, back to within about 1° in 2 s; sideways offset settles more slowly |
-| Simulation speed | 0.91 × real time (clock 455 Hz against 500 Hz) |
-| Topic rates | `/joint_states` 88 Hz, `/imu` 89 Hz, `/odom` 27 Hz, `/row_follower/state` 13.5 Hz, `/fruit/detections` 13.8 Hz |
+| Detection steadiness | 5, 11 and 8 frames gathered in the 1.5 s confirmation; every fruit confirmed |
+| Row following | from a 4° heading error, back to within about 1° in 2 s; sideways offset settles more slowly (0.3.0 measurement) |
+| Simulation speed | 0.89 × real time (clock 447 Hz against 500 Hz, headless) |
+| Topic rates | `/joint_states` 87 Hz, `/odom` 26 Hz, `/row_follower/state` 9.4 Hz, `/fruit/detections` 8.1 Hz, `/harvest/status` 1.8 Hz |
+| Tests | 338 pass (`colcon test`): pure logic, boundaries, failures, live nodes and launch |
 
-The world-file names in the log ("pedicel of plant_b0_r1_t1_f3 in the throat, 6 mm off") are a diagnostic, written after targeting. They say which fruit was cut and how far the vision estimate was from it.
-
-The video comes from a filming run that also picked 3 of 3. Leftover nodes from earlier test runs were still alive during it, so its numbers are not used; the table above is from the clean run.
+The world-file names in the log ("cut plant_b0_r1_t1_f3 (tomato_ripe), pedicel 7 mm from the throat") come from `sim_cut_model`, which is part of the simulator, not the robot. They say which fruit was cut and how far the vision estimate was from it. The autonomy nodes never read the world file.
 
 ## The ROS 2 system
 
 ![ROS 2 graph during a pick](media/ros2/ros2_graph.png)
 
-The graph above is drawn from the live ROS graph by `tools/sim/ros_graph.py`, during a pick in the clean run ([SVG](media/ros2/ros2_graph.svg)).
+The graph above is drawn from the live ROS graph by `tools/sim/ros_graph.py`, during the headless run ([SVG](media/ros2/ros2_graph.svg)). **[ros-architecture.md](ros-architecture.md) is the full guide**: packages, every node, topic, message, service and action, the parameters and their ranges, the launch files, what each node does on bad input, and the tests.
 
-| Piece | What it does |
-| --- | --- |
-| `row_follower` | `/front_camera/image` → `/cmd_vel` while `/row_follower/enable` is true. Finds the bare-soil furrow between the black mulch beds and steers on two points of its centre line. Publishes `/row_follower/state` and a debug image |
-| `fruit_detector` | `/arm_camera/image` + `/arm_camera/depth_image` + TF → `/fruit/detections` (fruit centres in `base_footprint`), RViz markers and a debug image |
-| `harvest_mission` | The mission: survey pose, enable row-following, stop at fruit in reach, confirm, solve IK, cut, carry, drop, verify. Publishes `/harvest/phase` and `/harvest/count` |
-| `drive_node` | `/cmd_vel` → steering angle (bicycle model, ±25°) and four wheel speeds, each set by the wheel's distance from the turn centre |
-| `gz_ros2_control` + `controller_manager` | Runs the robot's joints in Gazebo through ros2_control |
-| `wheel_controller` | Four wheel velocities |
-| `steering_controller` | Left and right steering knuckles |
-| `arm_controller` | JointTrajectoryController for J1, Z, J2, J3 |
-| `tool_controller` | Blade and trap door |
-| `scout_controller` | Scouting-camera pan |
-| `joint_state_broadcaster` → `robot_state_publisher` | `/joint_states` → `/tf` |
-| `ros_gz_bridge` | `/clock`, `/odom` (ground truth), `/imu`, all camera images and camera info |
-| `capture_frames` | Saves the robot's camera and debug images on each `/capture` message |
+In short, the nodes that would also run on the real robot live in `agribot_autonomy`, the project's own messages in `agribot_interfaces`, and everything only a simulator needs in `agribot_gazebo`:
+
+| Piece | Package | What it does |
+| --- | --- | --- |
+| `row_follower` | autonomy | `/front_camera/image` → `/cmd_vel` while `/row_follower/enable` is true. Finds the bare-soil furrow between the black mulch beds and steers on two points of its centre line. Publishes `RowState` and a debug image |
+| `fruit_detector` | autonomy | `/arm_camera/image` + `/arm_camera/depth_image` + TF → `/fruit/detections` (fruit centres in `base_footprint`), RViz markers and a debug image |
+| `harvest_mission` | autonomy | `Harvest` action server: survey pose, enable row-following, stop at fruit in reach, confirm, solve IK, cut, carry, drop, verify. Publishes `HarvestStatus` |
+| `harvest_client` | autonomy | Sends one `Harvest` goal and exits with its result (started by `harvest:=true`) |
+| `drive_node` | autonomy | `/cmd_vel` → steering angles and four wheel speeds, each set by the wheel's distance from the turn centre; stops the wheels when commands stop |
+| `sim_cut_model` | gazebo | The cut (remove and respawn the fruit) and the `/crate/verify` service |
+| `film_director`, `capture_frames` | gazebo | Filming only: the GUI camera and the saved robot camera frames |
+| ros2_control, `robot_state_publisher`, `ros_gz_bridge` | | Joints, TF, and Gazebo's clock, odometry, IMU and cameras |
 
 **Row following:** each image row in the lower band is scanned for the soil run nearest the centre, and a line is fitted through the run midpoints. The near point (bottom of the image) mostly measures sideways offset and the far point mostly measures heading, so the yaw command is `-(1.4 · near + 1.6 · far)` at 0.15 m/s. A plain slope term had the wrong sign under perspective whenever the rover was off-centre.
 
@@ -76,7 +74,7 @@ The graph above is drawn from the live ROS graph by `tools/sim/ros_graph.py`, du
 
 **Stopping and confirming:** the mission stops when a detection inside the reachable window appears in two consecutive frames at the same world position (within 3 cm, through odometry). It then gathers 1.5 s of detections, clusters them within 3 cm, and keeps clusters seen in at least 30% of frames. It picks the nearest one.
 
-**Arm targeting:** each pose is solved by damped least squares on the robot's own URDF (`agribot_gazebo/urdf_fk.py`), from several seeds, with the cutter's mouth turned to face the plant. The cut point is 30 mm above the estimated fruit centre, where the pedicel joins it.
+**Arm targeting:** each pose is solved by damped least squares on the robot's own URDF (`agribot_autonomy/urdf_fk.py`), from several seeds, with the cutter's mouth turned to face the plant. The cut point is 30 mm above the estimated fruit centre, where the pedicel joins it.
 
 ## Running it
 
@@ -93,13 +91,16 @@ ros2 launch agribot_gazebo demo.launch.py harvest:=true picks:=3
 | Launch argument | Default | Meaning |
 | --- | --- | --- |
 | `gui` | `true` | Open the Gazebo GUI |
-| `rviz` | `false` | Open RViz with the robot model and camera images |
+| `rviz` | `false` | Open RViz: robot model, detected fruit, the row-follower and detector debug images, arm depth |
 | `harvest` | `false` | Run the harvest mission |
 | `picks` | `2` | How many pick attempts; the mission also stops at the end of the row (4.6 m) |
 | `mast_pin` | `3` | SCARA mast height, 0–4 |
+| `params_file` | `agribot_autonomy/config/autonomy.yaml` | Parameters of the autonomy nodes; a value outside its declared range stops the node at launch |
 | `capture_dir` | empty | Save camera frames and direct the GUI camera for filming |
 
-To film, close or minimise other windows, then run:
+The autonomy nodes also start on their own, against any robot or bag that provides the same topics: `ros2 launch agribot_autonomy autonomy.launch.py`. `sim.launch.py` starts only the simulator side.
+
+To film, close every other window on the Ubuntu laptop first, including browser tabs playing video: the recording covers the whole screen, and a window in front of Gazebo ends up in the video. Then run:
 
 ```bash
 tools/sim/ubuntu/film.sh ~/agribot_capture 3

@@ -1,79 +1,74 @@
-# ROS 2 snapshot: perception-driven harvest (1 Nov 2026)
+# ROS 2 snapshot: autonomy and simulation split (1 Nov 2026)
 
-Clean run on the Ubuntu laptop (RTX 4060, ROS 2 Humble, Gazebo Fortress 6.18), `picks:=3`. Nothing but this launch was running.
+Taken on the Ubuntu laptop (RTX 4060, ROS 2 Humble, Gazebo Fortress 6.18) after the autonomy nodes moved into their own package. Graph, node list and rates come from a headless run with `picks:=1` (`done: 1 of 1 picks verified in the crate`); the harvest table comes from the filmed run with `picks:=3`. `tools/sim/ubuntu/stop.sh` ran before each, so no stale nodes were alive. How the parts fit together is explained in [ros-architecture.md](../../ros-architecture.md).
+
+![ROS 2 graph](ros2_graph.png)
 
 ## Nodes
 
 ```
 /arm_controller
-/capture_frames
 /controller_manager
 /drive_node
 /fruit_detector
 /gz_ros2_control
+/harvest_client
 /harvest_mission
 /joint_state_broadcaster
 /robot_state_publisher
 /ros_gz_bridge
 /row_follower
 /scout_controller
+/sim_cut_model
 /steering_controller
 /tool_controller
 /wheel_controller
 ```
+
+`harvest_client` exits once its goal finishes. `film_director` and `capture_frames` start only when `capture_dir` is set, so they are absent from this headless run.
 
 ## Controllers
 
 ```
 joint_state_broadcaster joint_state_broadcaster/JointStateBroadcaster          active
 wheel_controller        velocity_controllers/JointGroupVelocityController      active
-arm_controller          joint_trajectory_controller/JointTrajectoryController  active
 steering_controller     position_controllers/JointGroupPositionController      active
+arm_controller          joint_trajectory_controller/JointTrajectoryController  active
 tool_controller         position_controllers/JointGroupPositionController      active
 scout_controller        position_controllers/JointGroupPositionController      active
 ```
 
-## Perception and mission topics
+## Actions and services
 
-| Topic | Type | From → to |
-| --- | --- | --- |
-| `/front_camera/image` | `sensor_msgs/Image` | bridge → `row_follower` |
-| `/row_follower/enable` | `std_msgs/Bool` | `harvest_mission` → `row_follower` |
-| `/row_follower/state` | `std_msgs/Float32MultiArray` [near, far, confidence] | `row_follower` → (monitoring) |
-| `/row_follower/debug_image` | `sensor_msgs/Image` | `row_follower` → `capture_frames`, RViz |
-| `/cmd_vel` | `geometry_msgs/Twist` | `row_follower`, `harvest_mission` → `drive_node` |
-| `/arm_camera/image`, `/arm_camera/depth_image`, `/arm_camera/camera_info` | `sensor_msgs` | bridge → `fruit_detector` |
-| `/fruit/detections` | `geometry_msgs/PoseArray` (frame `base_footprint`) | `fruit_detector` → `harvest_mission` |
-| `/fruit/markers` | `visualization_msgs/MarkerArray` | `fruit_detector` → RViz |
-| `/fruit/debug_image` | `sensor_msgs/Image` | `fruit_detector` → `capture_frames`, RViz |
-| `/harvest/phase`, `/harvest/count` | `std_msgs/String`, `std_msgs/Int32` | `harvest_mission` → (monitoring) |
+```
+/harvest       agribot_interfaces/action/Harvest                  harvest_client -> harvest_mission
+/crate/verify  agribot_interfaces/srv/VerifyPick                  harvest_mission -> sim_cut_model
+/arm_controller/follow_joint_trajectory  control_msgs/action/FollowJointTrajectory
+```
 
 ## Rates (measured with `ros2 topic hz`, simulation running headless)
 
 | Topic | Rate |
 | --- | --- |
-| `/clock` | 454.8 Hz (0.91 × real time) |
-| `/joint_states` | 87.9 Hz |
-| `/imu` | 89.4 Hz |
-| `/odom` | 26.8 Hz |
-| `/tf` | 18.2 Hz |
-| `/front_camera/image` | 6.7 Hz |
-| `/arm_camera/image` | 3.2 Hz |
-| `/arm_camera/depth_image` | 6.1 Hz |
-| `/scout_camera/image` | 4.6 Hz |
-| `/row_follower/state` | 13.5 Hz |
-| `/fruit/detections` | 13.8 Hz |
+| `/clock` | 446.9 Hz |
+| `/joint_states` | 86.5 Hz |
+| `/odom` | 26.0 Hz |
+| `/tf` | 17.9 Hz |
+| `/front_camera/image` | 8.2 Hz |
+| `/arm_camera/image` | 7.1 Hz |
+| `/arm_camera/depth_image` | 5.3 Hz |
+| `/row_follower/state` | 9.4 Hz |
+| `/fruit/detections` | 8.1 Hz |
+| `/harvest/status` | 1.8 Hz |
 
-The row-follower and detector publish once per input image, yet they measure faster than the camera topics feeding them. So treat the camera figures as lower bounds. The likely cause is that `ros2 topic hz` (Python) cannot deserialise full images as fast as they arrive; the nodes' own output rates are the better estimate of what the cameras deliver.
+`/cmd_vel` measured nothing: the topics were sampled one after another, and by the time `/cmd_vel` was sampled the rover had stopped for its fruit, with the row follower switched off. `/harvest/status` publishes at 2 Hz and on every state change. The camera figures are lower bounds, because `ros2 topic hz` (Python) cannot deserialise full images as fast as they arrive.
 
-## Harvest phases (from the `harvest_mission` log)
+## Harvest (from the filmed `picks:=3` run)
 
-| Pick | Stop (fruit seen, rover frame, m) | Confirmed | Pedicel picked (world-file diagnostic) | Distance from estimate | Result |
+| Pick | Stop (fruit seen, rover frame, m) | Confirmed | Fruit cut (`sim_cut_model`) | Pedicel from the throat | Result |
 | --- | --- | --- | --- | --- | --- |
-| 1 | (0.108, −0.490, 0.831) | 24 of 24 frames, 2 fruit in reach | `plant_b0_r0_t1_f3`, half-ripe | 16 mm | in the crate |
-| 2 | (0.102, −0.501, 0.785) | 24 of 24 frames, 1 fruit in reach | `plant_b0_r1_t1_f3`, ripe | 6 mm | in the crate |
-| 3 | (0.103, −0.489, 0.835) | 24 of 24 frames, 2 fruit in reach | `plant_b0_r2_t1_f3`, half-ripe | 24 mm | in the crate |
+| 1 | (0.093, −0.483, 0.829) | 5 frames, 1 fruit | `plant_b0_r0_t1_f2`, ripe | 16 mm | in the crate |
+| 2 | (0.051, −0.498, 0.789) | 11 frames, 1 fruit | `plant_b0_r1_t1_f3`, ripe | 7 mm | in the crate |
+| 3 | (0.068, −0.476, 0.832) | 8 frames, 2 fruit | `plant_b0_r2_t1_f3`, half-ripe | 13 mm | in the crate |
 
-Every pick: the throat reached the estimated pedicel to within 0.1 mm (forward kinematics of the measured joints). Final line of the log: `done: 3 of 3 picks verified in the crate`.
-
-The world-file lookup is used only to say which fruit was cut and how far it was from the estimate; it never feeds the targeting.
+On every pick the throat reached the estimated pedicel to within 0.1 mm (forward kinematics of the measured joints). The pedicel distance is the cut model's measurement against the world file, which the mission never reads. The model accepts a cut within 30 mm. Final line of the log: `done: 3 of 3 picks verified in the crate`.

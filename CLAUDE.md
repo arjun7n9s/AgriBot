@@ -14,9 +14,11 @@ Read this first, then `README.md` and `docs/assets.md`.
 
 **Running on the Ubuntu laptop (RTX 4060):**
 - The Gazebo harvest demo works from cameras alone: `row_follower` steers on the furrow, `fruit_detector` finds red fruit with the arm RGB-D camera, and `harvest_mission` picks them. See `docs/simulation.md`.
-- Clean run: 3 of 3 picks verified in the crate (one ripe, two half-ripe).
-- The media in `docs/media` was filmed with `tools/sim/ubuntu/film.sh`.
-- Run `tools/sim/ubuntu/stop.sh` before every run; stale nodes publish on the same topics.
+- ROS layout (0.4.0): robot-side nodes in `agribot_autonomy` (no Gazebo), messages, service and action in `agribot_interfaces`, simulator-only parts in `agribot_gazebo`. The guide is `docs/ros-architecture.md`.
+- Tests: 338 pass with `colcon test` on Ubuntu. Run them after any change to the ROS packages.
+- Latest run: 3 of 3 picks verified in the crate (two ripe, one half-ripe).
+- The video, GIF and stills in `docs/media` are from 0.3.0. The 0.4.0 film caught other windows on the Ubuntu screen and was not used. Before re-filming, the Ubuntu desktop must show nothing but Gazebo; check the stills before publishing.
+- Run `tools/sim/ubuntu/stop.sh` before every run; stale nodes publish on the same topics. `tools/sim/ubuntu/sync.sh` copies the working tree to Ubuntu without committing.
 
 **Next:**
 1. **Ripeness.** A learned detector (for example YOLO on the 4060, trained on real photos) that tells ripe from half-ripe. Keep the `/fruit/detections` interface.

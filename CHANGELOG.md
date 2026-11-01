@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.4.0 (1 Nov 2026)
+
+### Added
+
+- **`agribot_autonomy` package:** the row follower, fruit detector, drive node and harvest mission, moved out of `agribot_gazebo`. It has no Gazebo dependency and runs against any robot that provides the same topics. Vision, steering and mission decisions are pure functions (`vision.py`, `steering.py`, `mission_logic.py`), so they can be tested without ROS.
+- **`agribot_interfaces` package:** `RowState` and `HarvestStatus` messages, the `VerifyPick` service and the `Harvest` action. A harvest is now an action goal with feedback, cancel and a result, sent by `harvest_client` or `ros2 action send_goal`.
+- **Parameters:** `config/autonomy.yaml` sets every parameter. Each one is declared with a type, a range and a description. Out-of-range or inconsistent values stop the node at launch, and a running node rejects them on `ros2 param set`.
+- **Launch split:** `sim.launch.py` (simulator), `autonomy.launch.py` (robot-side nodes) and `demo.launch.py` (both, plus filming). A missing or broken parameter file stops the launch.
+- **Failure handling:** image, `cmd_vel` and startup watchdogs, stall detection, NaN rejection, corrupt-image tolerance, TF fallback, single-goal enforcement and cancel. A missing crate sensor counts a pick as attempted but not verified.
+- **Tests:** 338 pass on Ubuntu (`colcon test`), covering pure logic, boundaries, failures, live nodes on a fast clock, launch, and the consistency of the bridge, controllers and URDF. The pure-logic tests also run on Windows without ROS.
+- **`sim_cut_model`:** the simulated cut and crate check, split out of the mission. It serves `/crate/verify`.
+- **Scenery:** drip lines, crate stacks, a fence and a tree line (`tools/sim/world_props.py`). They are visual only and tested to stay clear of the rover.
+- **Docs:** [ros-architecture.md](docs/ros-architecture.md) covers the packages, nodes, interfaces, parameters, launch, failure behaviour and tests. RViz now shows the detected fruit and both debug images.
+- **`tools/sim/ubuntu/sync.sh`:** copies the working tree to the Ubuntu laptop without committing.
+
+### Changed
+
+- **`urdf_fk.py`** moved to `agribot_autonomy`. It reads the URDF from `/robot_description` text, and IK uses a faster single-chain FK and several seeds.
+- **Blade joint:** it starts just inside its open limit, because in DART a joint sitting exactly on its limit could stay locked and the first cut never closed.
+- **`stop.sh`:** also stops the autonomy launch and every node of both packages.
+
+### Results
+
+- Filmed run: 3 of 3 picks verified in the crate (two ripe, one half-ripe). The fruit-centre estimates fell 16, 7 and 13 mm from the pedicel actually cut.
+- Headless run: 1 of 1 picks verified.
+
+### Known limits
+
+- The video, GIF and stills are still from 0.3.0. The 0.4.0 screen recording caught other windows on the Ubuntu laptop, so it was not published.
+- The colour rule still picks half-ripe fruit, and pedicel accuracy still needs to improve before the hardware (6 mm throat).
+
 ## 0.3.0 (1 Nov 2026)
 
 ### Added

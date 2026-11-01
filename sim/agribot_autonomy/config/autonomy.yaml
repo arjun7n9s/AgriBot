@@ -1,0 +1,69 @@
+# Parameters of the autonomy nodes. Each is declared in its node with a range, so a
+# value outside it stops the node at launch with the reason. Use floats for doubles
+# (0.5, not 1) and quote nothing.
+#
+# Numbers are measured, assumed or estimated (see docs/ros-architecture.md):
+#   assumed  = a plausible value until the real car is measured
+#   tuned    = chosen in simulation
+drive_node:
+  ros__parameters:
+    steering_geometry: ackermann   # 'ackermann' or 'parallel'; the real linkage is unknown
+    wheelbase: 0.72                # m, assumed
+    track: 0.55                    # m, assumed
+    wheel_radius: 0.19             # m, tyre 0.38 m diameter
+    steer_limit_deg: 25.0          # inner front wheel; matches the URDF knuckle limit
+    max_speed: 1.0                 # m/s
+    max_yaw_rate: 1.5              # rad/s
+    cmd_timeout: 0.5               # s of silence before the wheels stop
+
+row_follower:
+  ros__parameters:
+    speed: 0.15                    # m/s, tuned: slow enough for the arm camera to confirm fruit
+    k_near: 1.4                    # tuned
+    k_far: 1.6                     # tuned
+    min_confidence: 0.35
+    image_timeout: 1.0             # s without an image before stopping
+    start_enabled: false           # the mission switches it on over /row_follower/enable
+    band_top: 0.60                 # image band used, fractions of the height
+    band_bottom: 0.97
+    min_run: 0.06                  # shortest furrow run, fraction of the width
+
+fruit_detector:
+  ros__parameters:
+    target_frame: base_footprint
+    fruit_radius: 0.028            # m, from the fruit model
+    min_area: 150                  # px
+    max_range: 0.9                 # m, beyond the arm's reach anyway
+    core_fraction: 0.3             # depth is read near the blob centre: the near surface, not the silhouette
+    depth_percentile: 30.0         # fallback when the core has too few valid depth pixels
+    tf_timeout: 0.1                # s to wait for a transform at the image time
+    tf_max_age: 1.0                # s: newest transform accepted when the image is newer than all of them (the arm is still while detections are used)
+
+harvest_mission:
+  ros__parameters:
+    row_length: 4.6                # m, used when a goal gives no distance
+    startup_timeout: 60.0          # s to wait for the robot's inputs
+    stall_window: 20.0             # s without progress before aborting
+    stall_progress: 0.05           # m
+    confirm_seconds: 1.5
+    approach_distance: 0.08        # m stand-off before the cut
+    cut_above_centre: 0.030        # m, where the pedicel joins the fruit (fruit model)
+    cut_hold: 3.5                  # s blade stays closed so the fruit settles in the cradle
+    blade_open: -0.03              # just inside the joint's open limit (0): a blade commanded to exactly the limit
+                                   # stuck there in the simulator after arm moves
+    blade_closed: -1.2
+    door_shut: 0.0
+    door_open: 1.2
+    verify_timeout: 60.0
+    # Rover frame (base_footprint): x forward, y left, z up. Metres.
+    # reach_*: the box of cut-point positions that inverse kinematics reaches with the
+    # cutter facing the row (SCARA on mast pin 3). Checked by test_robot_model.py: all
+    # corners and the grid between them solve. IK stays the final judge in the mission.
+    reach_x: [0.02, 0.22]
+    reach_y: [-0.60, -0.45]
+    reach_z: [0.70, 0.90]
+    stop_x: [0.02, 0.12]           # stop when a fruit centre is in this x band (inside the reach box)
+    survey_point: [0.06, -0.385, 0.84]
+    crate_centre: [-0.36, 0.02]
+    crate_half: [0.192, 0.142]     # inside half extents of the 0.40 x 0.30 m crate
+    drop_point: [-0.29, -0.03, 0.86]   # over the crate, toward its centre (arm reach limit ~0.43 m)

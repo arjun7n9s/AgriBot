@@ -10,11 +10,14 @@ install(DIRECTORY urdf config worlds launch rviz
   DESTINATION share/${PROJECT_NAME})
 
 install(PROGRAMS
-  scripts/drive_node.py
-  scripts/row_follower.py
-  scripts/fruit_detector.py
-  scripts/harvest_mission.py
+  scripts/sim_cut_model.py
+  scripts/film_director.py
   scripts/capture_frames.py
   DESTINATION lib/${PROJECT_NAME})
+
+if(BUILD_TESTING)
+  find_package(ament_cmake_pytest REQUIRED)
+  ament_add_pytest_test(test_agribot_gazebo test)
+endif()
 
 ament_package()

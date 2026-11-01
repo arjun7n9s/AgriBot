@@ -1,0 +1,19 @@
+# Drive along the row and pick fruit until `max_picks` are attempted or the row ends.
+
+# Goal
+uint32 max_picks              # attempts to make; must be at least 1
+float32 max_distance          # metres of row to cover; 0 uses the mission's row_length parameter
+---
+# Result
+bool success                  # finished normally (it may still have picked nothing)
+uint32 attempted
+uint32 verified               # picks verified in the crate (unverified picks are not counted)
+float32 distance              # metres driven
+string message
+---
+# Feedback
+uint8 state                   # HarvestStatus state
+string detail
+uint32 attempts
+uint32 verified
+float32 distance

@@ -1,0 +1,8 @@
+# Ask whether the last cut fruit ended up in the crate.
+#
+# Implemented by whatever can see the crate: the simulator reads the fruit's
+# position back from Gazebo; a real robot would use a crate camera or a load cell.
+# The mission treats a missing service as "not verified", not as a failed pick.
+---
+bool in_crate
+string detail                 # for the log, e.g. the measured position or why it could not be told

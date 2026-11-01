@@ -4,7 +4,7 @@ Used by the Blender render scripts to pose the robot straight from the
 generated URDF, which also checks that the URDF is what we think it is. Not a
 replacement for KDL or MoveIt.
 
-    from urdf_fk import Robot
+    from agribot_autonomy.urdf_fk import Robot
     robot = Robot("sim/agribot_description/urdf/agribot.urdf")
     T = robot.fk({"scara_j1": 0.3, ...})      # {link: 4x4 world-from-link}
 """
@@ -36,8 +36,11 @@ def axis_angle(axis, angle):
 
 
 class Robot:
-    def __init__(self, path):
-        root = ET.parse(path).getroot()
+    def __init__(self, path=None, xml=None):
+        """Read the URDF from a file path, or from its text with `xml=`."""
+        if (path is None) == (xml is None):
+            raise ValueError("give exactly one of path or xml")
+        root = ET.parse(path).getroot() if path is not None else ET.fromstring(xml)
         self.links = {l.get("name"): l for l in root.findall("link")}
         self.joints = {}
         for j in root.findall("joint"):
@@ -90,6 +93,33 @@ class Robot:
             out.append((m.get("filename"), transform(xyz, rpy_matrix(*rpy))))
         return out
 
+    def chain(self, frame):
+        """Joint names from the root down to `frame` (cached)."""
+        cache = self.__dict__.setdefault("_chains", {})
+        if frame not in cache:
+            by_child = {j["child"]: n for n, j in self.joints.items()}
+            names, link = [], frame
+            while link in by_child:
+                names.append(by_child[link])
+                link = self.joints[by_child[link]]["parent"]
+            if link != self.root:
+                raise ValueError(f"{frame} is not connected to {self.root}")
+            cache[frame] = names[::-1]
+        return cache[frame]
+
+    def fk_frame(self, q, frame, base=np.eye(4)):
+        """World-from-`frame` transform, walking only the joints on its chain (much faster than `fk`)."""
+        t = base
+        for name in self.chain(frame):
+            j = self.joints[name]
+            t = t @ j["origin"]
+            val = q.get(name, 0.0)
+            if j["type"] in ("revolute", "continuous"):
+                t = t @ transform(rot=axis_angle(j["axis"], val))
+            elif j["type"] == "prismatic":
+                t = t @ transform(np.asarray(j["axis"]) * val)
+        return t
+
     def solve(self, joints, frame, target_xyz, target_yaw=None, q0=None, base=np.eye(4),
               iters=200, tol=1e-4):
         """Damped least-squares IK on `joints` so that `frame` reaches target_xyz
@@ -99,7 +129,7 @@ class Robot:
             q.setdefault(n, 0.0)
 
         def err(qq):
-            t = self.fk(qq, base)[frame]
+            t = self.fk_frame(qq, frame, base)
             e = list(np.asarray(target_xyz) - t[:3, 3])
             if target_yaw is not None:
                 yaw = math.atan2(t[1, 0], t[0, 0])
@@ -114,9 +144,27 @@ class Robot:
             for k, n in enumerate(joints):
                 dq = dict(q)
                 dq[n] += 1e-5
-                jac[:, k] = (err(q) - err(dq)) / 1e-5
+                jac[:, k] = (e - err(dq)) / 1e-5
             step = jac.T @ np.linalg.solve(jac @ jac.T + 1e-4 * np.eye(len(e)), e)
             for k, n in enumerate(joints):
                 j = self.joints[n]
                 q[n] = float(np.clip(q[n] + step[k], j["lower"], j["upper"]))
         return q, float(np.linalg.norm(err(q)))
+
+    def solve_best(self, joints, frame, target_xyz, target_yaw=None, seeds=(), base=np.eye(4), iters=120, good=1e-3):
+        """Run `solve` from each starting pose in `seeds` (dicts) and keep the smallest error.
+
+        Damped least squares can stall in a local minimum when the start is far from the
+        goal; starting from a few spread-out poses avoids that. Stops early at error < `good`.
+        Returns (joint values, error in metres-equivalent).
+        """
+        best = None
+        for seed in seeds:
+            q, e = self.solve(joints, frame, target_xyz, target_yaw=target_yaw, q0=seed, base=base, iters=iters)
+            if best is None or e < best[1]:
+                best = (q, e)
+            if e < good:
+                break
+        if best is None:
+            raise ValueError("solve_best needs at least one seed")
+        return best

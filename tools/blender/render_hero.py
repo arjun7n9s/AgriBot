@@ -1,7 +1,7 @@
 """Hero render: the AgriBOT rover in the tomato field, cutting a ripe fruit.
 
 Poses the robot from sim/agribot_description/urdf/agribot.urdf with the URDF
-forward kinematics in tools/description/urdf_fk.py. The arm pose comes from IK
+forward kinematics in sim/agribot_autonomy/agribot_autonomy/urdf_fk.py. The arm pose comes from IK
 onto a real fruit site: the throat of the cutter meets the fruit's distal
 pedicel. Needs the SCARA meshes, which are built locally from the
 HowToMechatronics STEP (see docs/assets.md).
@@ -20,7 +20,7 @@ from mathutils import Matrix
 
 HERE = pathlib.Path(__file__).parent
 sys.path.insert(0, str(HERE))
-sys.path.insert(0, str(HERE.parents[1] / "sim/agribot_gazebo/agribot_gazebo"))
+sys.path.insert(0, str(HERE.parents[1] / "sim/agribot_autonomy/agribot_autonomy"))
 import agri_common as ac  # noqa: E402
 import build_field as bf  # noqa: E402
 from urdf_fk import Robot, transform, rpy_matrix  # noqa: E402

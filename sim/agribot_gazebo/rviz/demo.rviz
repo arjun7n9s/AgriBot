@@ -19,14 +19,29 @@ Visualization Manager:
     - Class: rviz_default_plugins/TF
       Name: TF
       Enabled: false
+    - Class: rviz_default_plugins/MarkerArray
+      Name: Detected fruit
+      Enabled: true
+      Topic:
+        Value: /fruit/markers
+    - Class: rviz_default_plugins/Image
+      Name: Row follower (furrow fit)
+      Enabled: true
+      Topic:
+        Value: /row_follower/debug_image
+    - Class: rviz_default_plugins/Image
+      Name: Fruit detector (mask, blobs, range)
+      Enabled: true
+      Topic:
+        Value: /fruit/debug_image
     - Class: rviz_default_plugins/Image
       Name: Front camera
-      Enabled: true
+      Enabled: false
       Topic:
         Value: /front_camera/image
     - Class: rviz_default_plugins/Image
       Name: Arm camera
-      Enabled: true
+      Enabled: false
       Topic:
         Value: /arm_camera/image
     - Class: rviz_default_plugins/Image

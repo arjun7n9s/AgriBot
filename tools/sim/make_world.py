@@ -13,9 +13,12 @@ the SCARA mast on its right, facing bed 0's line at y = +0.30, the harvest line.
 
 All fruit on the plants are static, in collision group 0x04 that the robot
 ignores, so the arm and cradle can work inside a truss (real trusses sway
-aside; rigid ones would jam the cutter). The cut is modelled by the harvest
-node: it removes the fruit and spawns a free-falling copy at the same pose in
-group 0x02, which the cradle and the crate catch.
+aside; rigid ones would jam the cutter). The cut is modelled by sim_cut_model: when
+the blade closes it removes the fruit and spawns a free-falling copy at the same pose
+in group 0x02, which the cradle and the crate catch.
+
+Scenery (drip lines, a crate stack, a fence, trees, hills) comes from world_props.py.
+It is visual only and sits outside the rover's path.
 
     python tools/sim/make_world.py
 """
@@ -23,6 +26,8 @@ import json
 import math
 import pathlib
 import random
+
+import world_props
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 FIELD = ROOT / "sim/agribot_field"
@@ -115,6 +120,8 @@ def main():
                                         "cut_point": [round(v, 4) for v in cut]})
                 models.append(plant_model(name, variant, xyz, yaw, height))
 
+    scenery = world_props.scenery(pitch, bed_h, 1.5 * L)
+
     tiles = [f'    <include><uri>model://soil_tile</uri><name>soil_{i}_{j}</name>'
              f"<pose>{pose((i * 4.0, j * 4.0, -0.004), (0, 0, 0))}</pose></include>"
              for i in range(-1, 3) for j in range(-1, 2)]
@@ -173,6 +180,8 @@ def main():
 
 {chr(10).join(models)}
 
+{chr(10).join(scenery)}
+
 {chr(10).join(fruit_xml)}
   </world>
 </sdf>
@@ -181,7 +190,7 @@ def main():
     (OUT / "worlds/demo_row.sdf").write_text(world, encoding="utf-8")
     (OUT / "worlds/demo_row_targets.json").write_text(json.dumps({
         "frame": "world", "furrow_y": pitch / 2, "rover_heading": "+x",
-        "note": "Ground truth from the world generator; the detector is not in the loop yet.",
+        "note": "Ground truth from the world generator. Read only by sim_cut_model (the simulated cut and crate check); the autonomy nodes never see it.",
         "fruit": targets}, indent=2), encoding="utf-8")
 
     bridge = [

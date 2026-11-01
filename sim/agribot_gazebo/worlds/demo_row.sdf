@@ -260,6 +260,283 @@
       </link>
     </model>
 
+    <model name="headland"><static>true</static><pose>5.8500 1.0000 0.0040 0 0.0000 0.0000</pose>
+      <link name="link">
+        <visual name="gravel"><pose>0.0000 0.0000 0.0000 0 0.0000 0.0000</pose><geometry><box><size>2.8000 9.0000 0.0080</size></box></geometry><material><ambient>0.620 0.550 0.430 1</ambient><diffuse>0.620 0.550 0.430 1</diffuse><specular>0.02 0.02 0.02 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="drip_b0_0"><static>true</static><pose>0.0000 -0.1200 0.1620 0 1.5708 0.0000</pose>
+      <link name="link">
+        <visual name="tape"><pose>0.0000 0.0000 0.0000 0 0.0000 0.0000</pose><geometry><cylinder><radius>0.0090</radius><length>8.1000</length></cylinder></geometry><material><ambient>0.050 0.060 0.080 1</ambient><diffuse>0.050 0.060 0.080 1</diffuse><specular>0.30 0.30 0.30 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="drip_b0_1"><static>true</static><pose>0.0000 0.1200 0.1620 0 1.5708 0.0000</pose>
+      <link name="link">
+        <visual name="tape"><pose>0.0000 0.0000 0.0000 0 0.0000 0.0000</pose><geometry><cylinder><radius>0.0090</radius><length>8.1000</length></cylinder></geometry><material><ambient>0.050 0.060 0.080 1</ambient><diffuse>0.050 0.060 0.080 1</diffuse><specular>0.30 0.30 0.30 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="drip_b1_0"><static>true</static><pose>0.0000 1.8800 0.1620 0 1.5708 0.0000</pose>
+      <link name="link">
+        <visual name="tape"><pose>0.0000 0.0000 0.0000 0 0.0000 0.0000</pose><geometry><cylinder><radius>0.0090</radius><length>8.1000</length></cylinder></geometry><material><ambient>0.050 0.060 0.080 1</ambient><diffuse>0.050 0.060 0.080 1</diffuse><specular>0.30 0.30 0.30 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="drip_b1_1"><static>true</static><pose>0.0000 2.1200 0.1620 0 1.5708 0.0000</pose>
+      <link name="link">
+        <visual name="tape"><pose>0.0000 0.0000 0.0000 0 0.0000 0.0000</pose><geometry><cylinder><radius>0.0090</radius><length>8.1000</length></cylinder></geometry><material><ambient>0.050 0.060 0.080 1</ambient><diffuse>0.050 0.060 0.080 1</diffuse><specular>0.30 0.30 0.30 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="crate_stack"><static>true</static><pose>6.2500 2.9000 0.0000 0 0.0000 0.2500</pose>
+      <link name="link">
+        <visual name="deck"><pose>0.0000 0.0000 0.1150 0 0.0000 0.0000</pose><geometry><box><size>1.2000 0.8000 0.0300</size></box></geometry><material><ambient>0.550 0.400 0.240 1</ambient><diffuse>0.550 0.400 0.240 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="stringer_a"><pose>0.0000 -0.3200 0.0550 0 0.0000 0.0000</pose><geometry><box><size>1.2000 0.0900 0.0900</size></box></geometry><material><ambient>0.550 0.400 0.240 1</ambient><diffuse>0.550 0.400 0.240 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="stringer_b"><pose>0.0000 0.0000 0.0550 0 0.0000 0.0000</pose><geometry><box><size>1.2000 0.0900 0.0900</size></box></geometry><material><ambient>0.550 0.400 0.240 1</ambient><diffuse>0.550 0.400 0.240 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="stringer_c"><pose>0.0000 0.3200 0.0550 0 0.0000 0.0000</pose><geometry><box><size>1.2000 0.0900 0.0900</size></box></geometry><material><ambient>0.550 0.400 0.240 1</ambient><diffuse>0.550 0.400 0.240 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crate_0_0_0"><pose>-0.3000 -0.2000 0.2300 0 0.0000 0.0000</pose><geometry><box><size>0.4000 0.3000 0.2000</size></box></geometry><material><ambient>0.140 0.340 0.560 1</ambient><diffuse>0.140 0.340 0.560 1</diffuse><specular>0.20 0.20 0.20 1</specular></material></visual>
+        <visual name="rim_0_0_0"><pose>-0.3000 -0.2000 0.3300 0 0.0000 0.0000</pose><geometry><box><size>0.4100 0.3100 0.0200</size></box></geometry><material><ambient>0.200 0.450 0.700 1</ambient><diffuse>0.200 0.450 0.700 1</diffuse><specular>0.20 0.20 0.20 1</specular></material></visual>
+        <visual name="crate_0_0_1"><pose>-0.3000 0.2000 0.2300 0 0.0000 0.0000</pose><geometry><box><size>0.4000 0.3000 0.2000</size></box></geometry><material><ambient>0.140 0.340 0.560 1</ambient><diffuse>0.140 0.340 0.560 1</diffuse><specular>0.20 0.20 0.20 1</specular></material></visual>
+        <visual name="rim_0_0_1"><pose>-0.3000 0.2000 0.3300 0 0.0000 0.0000</pose><geometry><box><size>0.4100 0.3100 0.0200</size></box></geometry><material><ambient>0.200 0.450 0.700 1</ambient><diffuse>0.200 0.450 0.700 1</diffuse><specular>0.20 0.20 0.20 1</specular></material></visual>
+        <visual name="crate_0_1_0"><pose>0.3000 -0.2000 0.2300 0 0.0000 0.0000</pose><geometry><box><size>0.4000 0.3000 0.2000</size></box></geometry><material><ambient>0.140 0.340 0.560 1</ambient><diffuse>0.140 0.340 0.560 1</diffuse><specular>0.20 0.20 0.20 1</specular></material></visual>
+        <visual name="rim_0_1_0"><pose>0.3000 -0.2000 0.3300 0 0.0000 0.0000</pose><geometry><box><size>0.4100 0.3100 0.0200</size></box></geometry><material><ambient>0.200 0.450 0.700 1</ambient><diffuse>0.200 0.450 0.700 1</diffuse><specular>0.20 0.20 0.20 1</specular></material></visual>
+        <visual name="crate_0_1_1"><pose>0.3000 0.2000 0.2300 0 0.0000 0.0000</pose><geometry><box><size>0.4000 0.3000 0.2000</size></box></geometry><material><ambient>0.140 0.340 0.560 1</ambient><diffuse>0.140 0.340 0.560 1</diffuse><specular>0.20 0.20 0.20 1</specular></material></visual>
+        <visual name="rim_0_1_1"><pose>0.3000 0.2000 0.3300 0 0.0000 0.0000</pose><geometry><box><size>0.4100 0.3100 0.0200</size></box></geometry><material><ambient>0.200 0.450 0.700 1</ambient><diffuse>0.200 0.450 0.700 1</diffuse><specular>0.20 0.20 0.20 1</specular></material></visual>
+        <visual name="crate_1_0_0"><pose>-0.3000 -0.2000 0.4300 0 0.0000 0.0000</pose><geometry><box><size>0.4000 0.3000 0.2000</size></box></geometry><material><ambient>0.140 0.340 0.560 1</ambient><diffuse>0.140 0.340 0.560 1</diffuse><specular>0.20 0.20 0.20 1</specular></material></visual>
+        <visual name="rim_1_0_0"><pose>-0.3000 -0.2000 0.5300 0 0.0000 0.0000</pose><geometry><box><size>0.4100 0.3100 0.0200</size></box></geometry><material><ambient>0.200 0.450 0.700 1</ambient><diffuse>0.200 0.450 0.700 1</diffuse><specular>0.20 0.20 0.20 1</specular></material></visual>
+        <visual name="crate_1_0_1"><pose>-0.3000 0.2000 0.4300 0 0.0000 0.0000</pose><geometry><box><size>0.4000 0.3000 0.2000</size></box></geometry><material><ambient>0.140 0.340 0.560 1</ambient><diffuse>0.140 0.340 0.560 1</diffuse><specular>0.20 0.20 0.20 1</specular></material></visual>
+        <visual name="rim_1_0_1"><pose>-0.3000 0.2000 0.5300 0 0.0000 0.0000</pose><geometry><box><size>0.4100 0.3100 0.0200</size></box></geometry><material><ambient>0.200 0.450 0.700 1</ambient><diffuse>0.200 0.450 0.700 1</diffuse><specular>0.20 0.20 0.20 1</specular></material></visual>
+        <visual name="crate_1_1_0"><pose>0.3000 -0.2000 0.4300 0 0.0000 0.0000</pose><geometry><box><size>0.4000 0.3000 0.2000</size></box></geometry><material><ambient>0.140 0.340 0.560 1</ambient><diffuse>0.140 0.340 0.560 1</diffuse><specular>0.20 0.20 0.20 1</specular></material></visual>
+        <visual name="rim_1_1_0"><pose>0.3000 -0.2000 0.5300 0 0.0000 0.0000</pose><geometry><box><size>0.4100 0.3100 0.0200</size></box></geometry><material><ambient>0.200 0.450 0.700 1</ambient><diffuse>0.200 0.450 0.700 1</diffuse><specular>0.20 0.20 0.20 1</specular></material></visual>
+        <visual name="crate_1_1_1"><pose>0.3000 0.2000 0.4300 0 0.0000 0.0000</pose><geometry><box><size>0.4000 0.3000 0.2000</size></box></geometry><material><ambient>0.140 0.340 0.560 1</ambient><diffuse>0.140 0.340 0.560 1</diffuse><specular>0.20 0.20 0.20 1</specular></material></visual>
+        <visual name="rim_1_1_1"><pose>0.3000 0.2000 0.5300 0 0.0000 0.0000</pose><geometry><box><size>0.4100 0.3100 0.0200</size></box></geometry><material><ambient>0.200 0.450 0.700 1</ambient><diffuse>0.200 0.450 0.700 1</diffuse><specular>0.20 0.20 0.20 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="barrel_0"><static>true</static><pose>5.6500 -1.4000 0.0000 0 0.0000 0.0000</pose>
+      <link name="link">
+        <visual name="body"><pose>0.0000 0.0000 0.4250 0 0.0000 0.0000</pose><geometry><cylinder><radius>0.2700</radius><length>0.8500</length></cylinder></geometry><material><ambient>0.100 0.280 0.550 1</ambient><diffuse>0.100 0.280 0.550 1</diffuse><specular>0.35 0.35 0.35 1</specular></material></visual>
+        <visual name="lid"><pose>0.0000 0.0000 0.8600 0 0.0000 0.0000</pose><geometry><cylinder><radius>0.2750</radius><length>0.0300</length></cylinder></geometry><material><ambient>0.070 0.196 0.385 1</ambient><diffuse>0.070 0.196 0.385 1</diffuse><specular>0.35 0.35 0.35 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="barrel_1"><static>true</static><pose>6.2700 -1.2500 0.0000 0 0.0000 0.0000</pose>
+      <link name="link">
+        <visual name="body"><pose>0.0000 0.0000 0.4250 0 0.0000 0.0000</pose><geometry><cylinder><radius>0.2700</radius><length>0.8500</length></cylinder></geometry><material><ambient>0.120 0.420 0.300 1</ambient><diffuse>0.120 0.420 0.300 1</diffuse><specular>0.35 0.35 0.35 1</specular></material></visual>
+        <visual name="lid"><pose>0.0000 0.0000 0.8600 0 0.0000 0.0000</pose><geometry><cylinder><radius>0.2750</radius><length>0.0300</length></cylinder></geometry><material><ambient>0.084 0.294 0.210 1</ambient><diffuse>0.084 0.294 0.210 1</diffuse><specular>0.35 0.35 0.35 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="fence_post_0"><static>true</static><pose>-8.0500 -4.2000 0.0000 0 0.0000 0.0000</pose>
+      <link name="link">
+        <visual name="post"><pose>0.0000 0.0000 0.5750 0 0.0000 0.0000</pose><geometry><box><size>0.0900 0.0900 1.1500</size></box></geometry><material><ambient>0.420 0.310 0.200 1</ambient><diffuse>0.420 0.310 0.200 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="fence_post_1"><static>true</static><pose>-5.0333 -4.2000 0.0000 0 0.0000 0.0000</pose>
+      <link name="link">
+        <visual name="post"><pose>0.0000 0.0000 0.5750 0 0.0000 0.0000</pose><geometry><box><size>0.0900 0.0900 1.1500</size></box></geometry><material><ambient>0.420 0.310 0.200 1</ambient><diffuse>0.420 0.310 0.200 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="fence_post_2"><static>true</static><pose>-2.0167 -4.2000 0.0000 0 0.0000 0.0000</pose>
+      <link name="link">
+        <visual name="post"><pose>0.0000 0.0000 0.5750 0 0.0000 0.0000</pose><geometry><box><size>0.0900 0.0900 1.1500</size></box></geometry><material><ambient>0.420 0.310 0.200 1</ambient><diffuse>0.420 0.310 0.200 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="fence_post_3"><static>true</static><pose>1.0000 -4.2000 0.0000 0 0.0000 0.0000</pose>
+      <link name="link">
+        <visual name="post"><pose>0.0000 0.0000 0.5750 0 0.0000 0.0000</pose><geometry><box><size>0.0900 0.0900 1.1500</size></box></geometry><material><ambient>0.420 0.310 0.200 1</ambient><diffuse>0.420 0.310 0.200 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="fence_post_4"><static>true</static><pose>4.0167 -4.2000 0.0000 0 0.0000 0.0000</pose>
+      <link name="link">
+        <visual name="post"><pose>0.0000 0.0000 0.5750 0 0.0000 0.0000</pose><geometry><box><size>0.0900 0.0900 1.1500</size></box></geometry><material><ambient>0.420 0.310 0.200 1</ambient><diffuse>0.420 0.310 0.200 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="fence_post_5"><static>true</static><pose>7.0333 -4.2000 0.0000 0 0.0000 0.0000</pose>
+      <link name="link">
+        <visual name="post"><pose>0.0000 0.0000 0.5750 0 0.0000 0.0000</pose><geometry><box><size>0.0900 0.0900 1.1500</size></box></geometry><material><ambient>0.420 0.310 0.200 1</ambient><diffuse>0.420 0.310 0.200 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="fence_post_6"><static>true</static><pose>10.0500 -4.2000 0.0000 0 0.0000 0.0000</pose>
+      <link name="link">
+        <visual name="post"><pose>0.0000 0.0000 0.5750 0 0.0000 0.0000</pose><geometry><box><size>0.0900 0.0900 1.1500</size></box></geometry><material><ambient>0.420 0.310 0.200 1</ambient><diffuse>0.420 0.310 0.200 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="fence_wire_0"><static>true</static><pose>1.0000 -4.2000 0.3500 0 1.5708 0.0000</pose>
+      <link name="link">
+        <visual name="wire"><pose>0.0000 0.0000 0.0000 0 0.0000 0.0000</pose><geometry><cylinder><radius>0.0040</radius><length>18.1000</length></cylinder></geometry><material><ambient>0.620 0.640 0.660 1</ambient><diffuse>0.620 0.640 0.660 1</diffuse><specular>0.50 0.50 0.50 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="fence_wire_1"><static>true</static><pose>1.0000 -4.2000 0.7000 0 1.5708 0.0000</pose>
+      <link name="link">
+        <visual name="wire"><pose>0.0000 0.0000 0.0000 0 0.0000 0.0000</pose><geometry><cylinder><radius>0.0040</radius><length>18.1000</length></cylinder></geometry><material><ambient>0.620 0.640 0.660 1</ambient><diffuse>0.620 0.640 0.660 1</diffuse><specular>0.50 0.50 0.50 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="fence_wire_2"><static>true</static><pose>1.0000 -4.2000 1.0500 0 1.5708 0.0000</pose>
+      <link name="link">
+        <visual name="wire"><pose>0.0000 0.0000 0.0000 0 0.0000 0.0000</pose><geometry><cylinder><radius>0.0040</radius><length>18.1000</length></cylinder></geometry><material><ambient>0.620 0.640 0.660 1</ambient><diffuse>0.620 0.640 0.660 1</diffuse><specular>0.50 0.50 0.50 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="tree_0"><static>true</static><pose>30.2380 0.7609 0.0000 0 0.0000 3.5578</pose>
+      <link name="link">
+        <visual name="trunk"><pose>0.0000 0.0000 1.2999 0 0.0000 0.0000</pose><geometry><cylinder><radius>0.1400</radius><length>2.5997</length></cylinder></geometry><material><ambient>0.300 0.210 0.140 1</ambient><diffuse>0.300 0.210 0.140 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_0"><pose>-0.2460 0.2580 3.0613 0 0.0000 0.0000</pose><geometry><sphere><radius>1.1336</radius></sphere></geometry><material><ambient>0.253 0.406 0.203 1</ambient><diffuse>0.253 0.406 0.203 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_1"><pose>-0.2091 -0.4332 2.6149 0 0.0000 0.0000</pose><geometry><sphere><radius>1.1452</radius></sphere></geometry><material><ambient>0.223 0.408 0.159 1</ambient><diffuse>0.223 0.408 0.159 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_2"><pose>-0.1245 0.2089 2.9775 0 0.0000 0.0000</pose><geometry><sphere><radius>1.1191</radius></sphere></geometry><material><ambient>0.274 0.366 0.203 1</ambient><diffuse>0.274 0.366 0.203 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="tree_1"><static>true</static><pose>26.0739 10.6152 0.0000 0 0.0000 2.6341</pose>
+      <link name="link">
+        <visual name="trunk"><pose>0.0000 0.0000 1.1191 0 0.0000 0.0000</pose><geometry><cylinder><radius>0.1400</radius><length>2.2382</length></cylinder></geometry><material><ambient>0.300 0.210 0.140 1</ambient><diffuse>0.300 0.210 0.140 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_0"><pose>-0.3654 0.2070 2.2480 0 0.0000 0.0000</pose><geometry><sphere><radius>1.5360</radius></sphere></geometry><material><ambient>0.142 0.256 0.117 1</ambient><diffuse>0.142 0.256 0.117 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_1"><pose>0.0089 0.4853 2.9308 0 0.0000 0.0000</pose><geometry><sphere><radius>1.1896</radius></sphere></geometry><material><ambient>0.148 0.299 0.127 1</ambient><diffuse>0.148 0.299 0.127 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="tree_2"><static>true</static><pose>22.1151 15.9563 0.0000 0 0.0000 2.0669</pose>
+      <link name="link">
+        <visual name="trunk"><pose>0.0000 0.0000 1.2303 0 0.0000 0.0000</pose><geometry><cylinder><radius>0.1400</radius><length>2.4605</length></cylinder></geometry><material><ambient>0.300 0.210 0.140 1</ambient><diffuse>0.300 0.210 0.140 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_0"><pose>0.3849 -0.2893 2.8153 0 0.0000 0.0000</pose><geometry><sphere><radius>1.0891</radius></sphere></geometry><material><ambient>0.205 0.479 0.175 1</ambient><diffuse>0.205 0.479 0.175 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_1"><pose>-0.2868 -0.2417 3.1559 0 0.0000 0.0000</pose><geometry><sphere><radius>1.3720</radius></sphere></geometry><material><ambient>0.243 0.438 0.141 1</ambient><diffuse>0.243 0.438 0.141 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="tree_3"><static>true</static><pose>14.5445 19.3665 0.0000 0 0.0000 1.1926</pose>
+      <link name="link">
+        <visual name="trunk"><pose>0.0000 0.0000 1.1778 0 0.0000 0.0000</pose><geometry><cylinder><radius>0.1400</radius><length>2.3556</length></cylinder></geometry><material><ambient>0.300 0.210 0.140 1</ambient><diffuse>0.300 0.210 0.140 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_0"><pose>-0.0468 0.4591 2.7909 0 0.0000 0.0000</pose><geometry><sphere><radius>0.9344</radius></sphere></geometry><material><ambient>0.184 0.332 0.144 1</ambient><diffuse>0.184 0.332 0.144 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_1"><pose>0.4084 0.3178 2.5801 0 0.0000 0.0000</pose><geometry><sphere><radius>0.8592</radius></sphere></geometry><material><ambient>0.184 0.400 0.127 1</ambient><diffuse>0.184 0.400 0.127 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="tree_4"><static>true</static><pose>1.0512 23.5399 0.0000 0 0.0000 1.2816</pose>
+      <link name="link">
+        <visual name="trunk"><pose>0.0000 0.0000 1.4437 0 0.0000 0.0000</pose><geometry><cylinder><radius>0.1400</radius><length>2.8873</length></cylinder></geometry><material><ambient>0.300 0.210 0.140 1</ambient><diffuse>0.300 0.210 0.140 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_0"><pose>-0.4613 0.4627 3.1019 0 0.0000 0.0000</pose><geometry><sphere><radius>1.2856</radius></sphere></geometry><material><ambient>0.245 0.433 0.156 1</ambient><diffuse>0.245 0.433 0.156 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_1"><pose>-0.2066 -0.3246 3.5356 0 0.0000 0.0000</pose><geometry><sphere><radius>1.5454</radius></sphere></geometry><material><ambient>0.234 0.389 0.176 1</ambient><diffuse>0.234 0.389 0.176 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_2"><pose>0.1143 -0.2198 3.7129 0 0.0000 0.0000</pose><geometry><sphere><radius>1.6804</radius></sphere></geometry><material><ambient>0.192 0.386 0.163 1</ambient><diffuse>0.192 0.386 0.163 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="tree_5"><static>true</static><pose>-5.5132 19.2961 0.0000 0 0.0000 5.7190</pose>
+      <link name="link">
+        <visual name="trunk"><pose>0.0000 0.0000 1.0099 0 0.0000 0.0000</pose><geometry><cylinder><radius>0.1400</radius><length>2.0199</length></cylinder></geometry><material><ambient>0.300 0.210 0.140 1</ambient><diffuse>0.300 0.210 0.140 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_0"><pose>-0.3684 -0.1379 2.8217 0 0.0000 0.0000</pose><geometry><sphere><radius>1.1231</radius></sphere></geometry><material><ambient>0.226 0.361 0.173 1</ambient><diffuse>0.226 0.361 0.173 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_1"><pose>-0.3597 -0.4649 2.0360 0 0.0000 0.0000</pose><geometry><sphere><radius>1.1278</radius></sphere></geometry><material><ambient>0.297 0.419 0.190 1</ambient><diffuse>0.297 0.419 0.190 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="tree_6"><static>true</static><pose>-17.4116 18.5231 0.0000 0 0.0000 5.6601</pose>
+      <link name="link">
+        <visual name="trunk"><pose>0.0000 0.0000 1.4206 0 0.0000 0.0000</pose><geometry><cylinder><radius>0.1400</radius><length>2.8412</length></cylinder></geometry><material><ambient>0.300 0.210 0.140 1</ambient><diffuse>0.300 0.210 0.140 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_0"><pose>-0.4247 0.0461 3.5045 0 0.0000 0.0000</pose><geometry><sphere><radius>1.7736</radius></sphere></geometry><material><ambient>0.179 0.385 0.132 1</ambient><diffuse>0.179 0.385 0.132 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_1"><pose>0.4150 -0.1482 3.4578 0 0.0000 0.0000</pose><geometry><sphere><radius>1.6639</radius></sphere></geometry><material><ambient>0.202 0.386 0.149 1</ambient><diffuse>0.202 0.386 0.149 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="tree_7"><static>true</static><pose>-19.9601 6.8692 0.0000 0 0.0000 4.3878</pose>
+      <link name="link">
+        <visual name="trunk"><pose>0.0000 0.0000 1.5227 0 0.0000 0.0000</pose><geometry><cylinder><radius>0.1400</radius><length>3.0453</length></cylinder></geometry><material><ambient>0.300 0.210 0.140 1</ambient><diffuse>0.300 0.210 0.140 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_0"><pose>0.1089 -0.4198 3.6208 0 0.0000 0.0000</pose><geometry><sphere><radius>1.2177</radius></sphere></geometry><material><ambient>0.184 0.373 0.135 1</ambient><diffuse>0.184 0.373 0.135 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_1"><pose>0.2350 0.0810 3.4418 0 0.0000 0.0000</pose><geometry><sphere><radius>1.1366</radius></sphere></geometry><material><ambient>0.207 0.401 0.150 1</ambient><diffuse>0.207 0.401 0.150 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_2"><pose>0.1013 -0.0190 3.2525 0 0.0000 0.0000</pose><geometry><sphere><radius>0.9868</radius></sphere></geometry><material><ambient>0.198 0.315 0.151 1</ambient><diffuse>0.198 0.315 0.151 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="tree_8"><static>true</static><pose>-29.8525 -1.7428 0.0000 0 0.0000 2.2038</pose>
+      <link name="link">
+        <visual name="trunk"><pose>0.0000 0.0000 1.2984 0 0.0000 0.0000</pose><geometry><cylinder><radius>0.1400</radius><length>2.5967</length></cylinder></geometry><material><ambient>0.300 0.210 0.140 1</ambient><diffuse>0.300 0.210 0.140 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_0"><pose>0.0184 0.2538 2.9050 0 0.0000 0.0000</pose><geometry><sphere><radius>1.3519</radius></sphere></geometry><material><ambient>0.291 0.384 0.161 1</ambient><diffuse>0.291 0.384 0.161 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_1"><pose>-0.2494 0.1342 3.3200 0 0.0000 0.0000</pose><geometry><sphere><radius>1.2569</radius></sphere></geometry><material><ambient>0.294 0.400 0.166 1</ambient><diffuse>0.294 0.400 0.166 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_2"><pose>0.4208 -0.2901 2.7178 0 0.0000 0.0000</pose><geometry><sphere><radius>1.1719</radius></sphere></geometry><material><ambient>0.280 0.364 0.165 1</ambient><diffuse>0.280 0.364 0.165 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="tree_9"><static>true</static><pose>-24.1526 -7.8761 0.0000 0 0.0000 2.5459</pose>
+      <link name="link">
+        <visual name="trunk"><pose>0.0000 0.0000 1.5374 0 0.0000 0.0000</pose><geometry><cylinder><radius>0.1400</radius><length>3.0748</length></cylinder></geometry><material><ambient>0.300 0.210 0.140 1</ambient><diffuse>0.300 0.210 0.140 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_0"><pose>0.3309 -0.1175 3.5428 0 0.0000 0.0000</pose><geometry><sphere><radius>1.1033</radius></sphere></geometry><material><ambient>0.197 0.318 0.139 1</ambient><diffuse>0.197 0.318 0.139 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_1"><pose>-0.1797 0.3287 3.3251 0 0.0000 0.0000</pose><geometry><sphere><radius>1.0014</radius></sphere></geometry><material><ambient>0.189 0.383 0.154 1</ambient><diffuse>0.189 0.383 0.154 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_2"><pose>0.1493 0.0640 3.6517 0 0.0000 0.0000</pose><geometry><sphere><radius>0.9098</radius></sphere></geometry><material><ambient>0.186 0.379 0.131 1</ambient><diffuse>0.186 0.379 0.131 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="tree_10"><static>true</static><pose>-15.6139 -10.0611 0.0000 0 0.0000 3.3606</pose>
+      <link name="link">
+        <visual name="trunk"><pose>0.0000 0.0000 1.1140 0 0.0000 0.0000</pose><geometry><cylinder><radius>0.1400</radius><length>2.2279</length></cylinder></geometry><material><ambient>0.300 0.210 0.140 1</ambient><diffuse>0.300 0.210 0.140 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_0"><pose>-0.3910 0.0354 2.8038 0 0.0000 0.0000</pose><geometry><sphere><radius>1.2036</radius></sphere></geometry><material><ambient>0.163 0.327 0.137 1</ambient><diffuse>0.163 0.327 0.137 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_1"><pose>-0.2440 0.2142 2.9074 0 0.0000 0.0000</pose><geometry><sphere><radius>1.5519</radius></sphere></geometry><material><ambient>0.144 0.262 0.109 1</ambient><diffuse>0.144 0.262 0.109 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="tree_11"><static>true</static><pose>-6.8498 -15.1361 0.0000 0 0.0000 5.9329</pose>
+      <link name="link">
+        <visual name="trunk"><pose>0.0000 0.0000 1.0217 0 0.0000 0.0000</pose><geometry><cylinder><radius>0.1400</radius><length>2.0434</length></cylinder></geometry><material><ambient>0.300 0.210 0.140 1</ambient><diffuse>0.300 0.210 0.140 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_0"><pose>0.4326 0.2224 2.1603 0 0.0000 0.0000</pose><geometry><sphere><radius>0.9139</radius></sphere></geometry><material><ambient>0.145 0.326 0.135 1</ambient><diffuse>0.145 0.326 0.135 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_1"><pose>0.0688 0.3793 2.7605 0 0.0000 0.0000</pose><geometry><sphere><radius>1.0232</radius></sphere></geometry><material><ambient>0.148 0.311 0.135 1</ambient><diffuse>0.148 0.311 0.135 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="tree_12"><static>true</static><pose>0.1254 -17.6420 0.0000 0 0.0000 0.5201</pose>
+      <link name="link">
+        <visual name="trunk"><pose>0.0000 0.0000 1.2782 0 0.0000 0.0000</pose><geometry><cylinder><radius>0.1400</radius><length>2.5564</length></cylinder></geometry><material><ambient>0.300 0.210 0.140 1</ambient><diffuse>0.300 0.210 0.140 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_0"><pose>-0.2867 0.4000 3.4389 0 0.0000 0.0000</pose><geometry><sphere><radius>1.4241</radius></sphere></geometry><material><ambient>0.235 0.460 0.167 1</ambient><diffuse>0.235 0.460 0.167 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_1"><pose>0.4100 0.3558 2.8701 0 0.0000 0.0000</pose><geometry><sphere><radius>1.2387</radius></sphere></geometry><material><ambient>0.252 0.425 0.174 1</ambient><diffuse>0.252 0.425 0.174 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="tree_13"><static>true</static><pose>9.5518 -18.4595 0.0000 0 0.0000 3.5282</pose>
+      <link name="link">
+        <visual name="trunk"><pose>0.0000 0.0000 1.2645 0 0.0000 0.0000</pose><geometry><cylinder><radius>0.1400</radius><length>2.5291</length></cylinder></geometry><material><ambient>0.300 0.210 0.140 1</ambient><diffuse>0.300 0.210 0.140 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_0"><pose>-0.4649 0.0331 3.1470 0 0.0000 0.0000</pose><geometry><sphere><radius>1.2308</radius></sphere></geometry><material><ambient>0.169 0.275 0.133 1</ambient><diffuse>0.169 0.275 0.133 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_1"><pose>0.0182 0.1779 2.9252 0 0.0000 0.0000</pose><geometry><sphere><radius>1.4409</radius></sphere></geometry><material><ambient>0.169 0.297 0.138 1</ambient><diffuse>0.169 0.297 0.138 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_2"><pose>-0.0606 0.0588 3.2771 0 0.0000 0.0000</pose><geometry><sphere><radius>1.3773</radius></sphere></geometry><material><ambient>0.167 0.307 0.127 1</ambient><diffuse>0.167 0.307 0.127 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="tree_14"><static>true</static><pose>23.5432 -15.4200 0.0000 0 0.0000 5.8486</pose>
+      <link name="link">
+        <visual name="trunk"><pose>0.0000 0.0000 1.0986 0 0.0000 0.0000</pose><geometry><cylinder><radius>0.1400</radius><length>2.1972</length></cylinder></geometry><material><ambient>0.300 0.210 0.140 1</ambient><diffuse>0.300 0.210 0.140 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_0"><pose>-0.1955 -0.3588 2.6875 0 0.0000 0.0000</pose><geometry><sphere><radius>1.2889</radius></sphere></geometry><material><ambient>0.158 0.341 0.133 1</ambient><diffuse>0.158 0.341 0.133 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_1"><pose>-0.4951 -0.1230 2.6817 0 0.0000 0.0000</pose><geometry><sphere><radius>1.0720</radius></sphere></geometry><material><ambient>0.140 0.300 0.117 1</ambient><diffuse>0.140 0.300 0.117 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_2"><pose>-0.3781 -0.4068 2.3473 0 0.0000 0.0000</pose><geometry><sphere><radius>1.4553</radius></sphere></geometry><material><ambient>0.129 0.338 0.122 1</ambient><diffuse>0.129 0.338 0.122 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="tree_15"><static>true</static><pose>28.8439 -7.1296 0.0000 0 0.0000 3.6583</pose>
+      <link name="link">
+        <visual name="trunk"><pose>0.0000 0.0000 1.2754 0 0.0000 0.0000</pose><geometry><cylinder><radius>0.1400</radius><length>2.5507</length></cylinder></geometry><material><ambient>0.300 0.210 0.140 1</ambient><diffuse>0.300 0.210 0.140 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_0"><pose>0.4357 0.4200 3.0232 0 0.0000 0.0000</pose><geometry><sphere><radius>1.6927</radius></sphere></geometry><material><ambient>0.240 0.399 0.171 1</ambient><diffuse>0.240 0.399 0.171 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_1"><pose>0.2021 0.4773 2.5828 0 0.0000 0.0000</pose><geometry><sphere><radius>1.3574</radius></sphere></geometry><material><ambient>0.229 0.390 0.155 1</ambient><diffuse>0.229 0.390 0.155 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+        <visual name="crown_2"><pose>-0.2555 -0.0012 3.0004 0 0.0000 0.0000</pose><geometry><sphere><radius>1.5999</radius></sphere></geometry><material><ambient>0.233 0.341 0.168 1</ambient><diffuse>0.233 0.341 0.168 1</diffuse><specular>0.10 0.10 0.10 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="hill_0"><static>true</static><pose>-10.0000 48.0000 -3.3000 0 0.0000 0.0000</pose>
+      <link name="link">
+        <visual name="hill"><pose>0.0000 0.0000 0.0000 0 0.0000 0.0000</pose><geometry><ellipsoid><radii>30.000 9.000 6.000</radii></ellipsoid></geometry><material><ambient>0.450 0.550 0.450 1</ambient><diffuse>0.450 0.550 0.450 1</diffuse><specular>0.00 0.00 0.00 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="hill_1"><static>true</static><pose>14.0000 55.0000 -4.4000 0 0.0000 0.0000</pose>
+      <link name="link">
+        <visual name="hill"><pose>0.0000 0.0000 0.0000 0 0.0000 0.0000</pose><geometry><ellipsoid><radii>38.000 10.000 8.000</radii></ellipsoid></geometry><material><ambient>0.500 0.600 0.520 1</ambient><diffuse>0.500 0.600 0.520 1</diffuse><specular>0.00 0.00 0.00 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="hill_2"><static>true</static><pose>-34.0000 40.0000 -2.7500 0 0.0000 0.0000</pose>
+      <link name="link">
+        <visual name="hill"><pose>0.0000 0.0000 0.0000 0 0.0000 0.0000</pose><geometry><ellipsoid><radii>26.000 8.000 5.000</radii></ellipsoid></geometry><material><ambient>0.420 0.520 0.440 1</ambient><diffuse>0.420 0.520 0.440 1</diffuse><specular>0.00 0.00 0.00 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="hill_3"><static>true</static><pose>38.0000 44.0000 -3.8500 0 0.0000 0.0000</pose>
+      <link name="link">
+        <visual name="hill"><pose>0.0000 0.0000 0.0000 0 0.0000 0.0000</pose><geometry><ellipsoid><radii>34.000 9.000 7.000</radii></ellipsoid></geometry><material><ambient>0.480 0.580 0.500 1</ambient><diffuse>0.480 0.580 0.500 1</diffuse><specular>0.00 0.00 0.00 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="hill_4"><static>true</static><pose>2.0000 -50.0000 -3.8500 0 0.0000 0.0000</pose>
+      <link name="link">
+        <visual name="hill"><pose>0.0000 0.0000 0.0000 0 0.0000 0.0000</pose><geometry><ellipsoid><radii>36.000 10.000 7.000</radii></ellipsoid></geometry><material><ambient>0.480 0.580 0.500 1</ambient><diffuse>0.480 0.580 0.500 1</diffuse><specular>0.00 0.00 0.00 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="hill_5"><static>true</static><pose>-28.0000 -46.0000 -3.3000 0 0.0000 0.0000</pose>
+      <link name="link">
+        <visual name="hill"><pose>0.0000 0.0000 0.0000 0 0.0000 0.0000</pose><geometry><ellipsoid><radii>30.000 8.000 6.000</radii></ellipsoid></geometry><material><ambient>0.440 0.540 0.460 1</ambient><diffuse>0.440 0.540 0.460 1</diffuse><specular>0.00 0.00 0.00 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="hill_6"><static>true</static><pose>30.0000 -52.0000 -3.3000 0 0.0000 0.0000</pose>
+      <link name="link">
+        <visual name="hill"><pose>0.0000 0.0000 0.0000 0 0.0000 0.0000</pose><geometry><ellipsoid><radii>32.000 9.000 6.000</radii></ellipsoid></geometry><material><ambient>0.500 0.600 0.520 1</ambient><diffuse>0.500 0.600 0.520 1</diffuse><specular>0.00 0.00 0.00 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="hill_7"><static>true</static><pose>-52.0000 4.0000 -3.3000 0 0.0000 0.0000</pose>
+      <link name="link">
+        <visual name="hill"><pose>0.0000 0.0000 0.0000 0 0.0000 0.0000</pose><geometry><ellipsoid><radii>28.000 8.000 6.000</radii></ellipsoid></geometry><material><ambient>0.460 0.560 0.480 1</ambient><diffuse>0.460 0.560 0.480 1</diffuse><specular>0.00 0.00 0.00 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="hill_8"><static>true</static><pose>56.0000 10.0000 -3.8500 0 0.0000 0.0000</pose>
+      <link name="link">
+        <visual name="hill"><pose>0.0000 0.0000 0.0000 0 0.0000 0.0000</pose><geometry><ellipsoid><radii>30.000 9.000 7.000</radii></ellipsoid></geometry><material><ambient>0.470 0.570 0.490 1</ambient><diffuse>0.470 0.570 0.490 1</diffuse><specular>0.00 0.00 0.00 1</specular></material></visual>
+      </link>
+    </model>
+
     <include><uri>model://tomato_ripe</uri><name>plant_b0_l0_t0_f0</name><pose>0.25619 -0.37976 0.55700 -0.00800 -0.11100 0.65608</pose><static>true</static></include>
     <include><uri>model://tomato_ripe</uri><name>plant_b0_l0_t0_f1</name><pose>0.32854 -0.38195 0.54240 0.00000 0.06800 -1.26692</pose><static>true</static></include>
     <include><uri>model://tomato_ripe</uri><name>plant_b0_l0_t0_f2</name><pose>0.32403 -0.45422 0.52780 -0.00700 0.02500 -2.28092</pose><static>true</static></include>

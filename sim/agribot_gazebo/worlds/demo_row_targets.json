@@ -2,7 +2,7 @@
   "frame": "world",
   "furrow_y": 1.0,
   "rover_heading": "+x",
-  "note": "Ground truth from the world generator; the detector is not in the loop yet.",
+  "note": "Ground truth from the world generator. Read only by sim_cut_model (the simulated cut and crate check); the autonomy nodes never see it.",
   "fruit": [
     {
       "name": "plant_b0_r0_t0_f0",

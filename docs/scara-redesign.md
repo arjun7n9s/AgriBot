@@ -1,5 +1,7 @@
 # SCARA redesign: Arm 2 and the tomato cutter
 
+> **Superseded for Arm 2 and the cutter** by [arm-v2-design.md](arm-v2-design.md) (4 Nov 2026). The literature figures, the height plan (section 4) and the questions for Tejesh (section 7) still apply.
+
 Drafted 31 Oct 2026 for AB-4. Already printed: the base, the Z axis and Arm 1. Still to design: Arm 2 and the end effector.
 
 The geometry below was measured from `media/scara-arm/.../solidworks/SCARA Robot.SLDASM` (component positions; the joint axes are vertical). The tomato figures come from a literature pass. Each is marked **[M]** (measured in the cited source) or **[E]** (an estimate). Spot-check the sources before quoting them in a funding document.

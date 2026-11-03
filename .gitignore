@@ -1,5 +1,6 @@
 # Local Python environment and caches
 .venv/
+.venv-cad/
 __pycache__/
 *.pyc
 
@@ -15,3 +16,6 @@ media/scara-arm/**/*.zip
 
 # Scratch output from asset tools
 build/
+
+# GLB meshes written only for the arm v2 renders
+cad/arm-v2/preview/

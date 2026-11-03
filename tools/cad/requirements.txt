@@ -1,0 +1,4 @@
+# CAD tools (tools/cad). Separate venv: build123d brings its own OpenCascade build.
+#   uv venv .venv-cad --python 3.11 && uv pip install --python .venv-cad/Scripts/python.exe -r tools/cad/requirements.txt
+build123d==0.13.0
+matplotlib>=3.8

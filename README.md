@@ -24,7 +24,7 @@ The rover follows the furrow with its front camera, finds red tomatoes with its 
 | Field models for Gazebo and Unreal | Running in Gazebo | [sim/agribot_field](sim/agribot_field) |
 | Gazebo harvest demo (ROS 2 Humble, Fortress) | Working: camera row-following and fruit detection, 3 of 3 verified picks | [docs/simulation.md](docs/simulation.md), [sim/agribot_gazebo](sim/agribot_gazebo) |
 | ROS 2 autonomy stack: nodes, interfaces, parameters, launch, 338 tests | Working; also runs without the simulator | [docs/ros-architecture.md](docs/ros-architecture.md), [sim/agribot_autonomy](sim/agribot_autonomy) |
-| SCARA arm v2 (printed PETG links, L2 200 mm) and tomato cutter | CAD done, collision- and print-bed-checked, not printed yet | [docs/arm-v2-design.md](docs/arm-v2-design.md), [cad/arm-v2](cad/arm-v2) |
+| SCARA arm v2 (printed PETG links, L2 200 mm) and suction-and-cut end effector | CAD done, collision- and print-bed-checked, not printed yet | [docs/arm-v2-design.md](docs/arm-v2-design.md), [cad/arm-v2](cad/arm-v2) |
 | Earlier SCARA redesign notes and literature | Background | [docs/scara-redesign.md](docs/scara-redesign.md) |
 | Simulation pathway | Plan | [docs/work-plan.md](docs/work-plan.md), [docs/ros2-demo-sim-plan.md](docs/ros2-demo-sim-plan.md) |
 | Stock rover control board (reverse engineering) | In progress | [docs/rover-control-board.md](docs/rover-control-board.md), [docs/rover-logic-interface.md](docs/rover-logic-interface.md) |

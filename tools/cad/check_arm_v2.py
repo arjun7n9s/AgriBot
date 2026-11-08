@@ -1,10 +1,12 @@
-"""Collision and function checks for the arm v2 CAD. Exits 1 on a failure.
+"""Collision, function and printability checks for the arm v2 CAD. Exits 1 on a failure.
 
-    .venv-cad/Scripts/python tools/cad/check_arm_v2.py          # about 10 minutes
+    .venv-cad/Scripts/python tools/cad/check_arm_v2.py          # several minutes
 
 1. Cutter: no part touches another over the blade stroke, door shut and open.
-2. Blade: clear of the slot and V when open; covers the whole throat when closed.
+2. Blade: the lever and moving blade are clear of the slot and V when open; the moving blade covers the
+   whole throat when closed (so it has crossed the fixed edge).
 3. Arm: Arm 1, Arm 2 and the tool never touch across J2 and at the J3 limits.
+4. Printing: every printed part fits the Kobra S1 bed (250 x 250 x 250 mm, 5 mm margin) at some yaw.
 """
 import itertools
 import sys
@@ -50,12 +52,14 @@ def main():
             for c in clashes(tool):
                 fails.append(f"tool lever {th} door {door}: {c}")
     # 2. blade against the slot
-    v, _ = B.v_outline()
-    slot = Pos(0, 0, G.VPLATE_T) * extrude(v, G.LEVER_T)
-    throat = slot & B.box(G.THROAT_X - 5, G.THROAT_X + G.SLOT_LEN, -10, 10, 0, 10)
-    if overlap(B.lever_at(G.LEVER_OPEN), slot) > 0.01:
-        fails.append("blade is in the slot or V when open")
-    covered = overlap(B.lever_at(G.LEVER_CLOSED), throat) / throat.volume
+    slot = extrude(B.v_outline(), G.LEVER_T)
+    throat = slot & B.box(G.THROAT_X - 5, G.THROAT_X + G.SLOT_LEN, -10, 10, 0, G.BLADE["t"])
+    lever, blade = B.lever_at(G.LEVER_OPEN)
+    if overlap(lever + blade, slot) > 0.01:
+        fails.append("blade-lever is in the slot or V when open")
+    _, blade = B.lever_at(G.LEVER_CLOSED)
+    covered = overlap(blade, throat) / throat.volume
+    print(f"moving blade covers {covered:.1%} of the throat when closed")
     if covered < 0.95:
         fails.append(f"blade covers only {covered:.0%} of the throat when closed")
     # 3. arm sweep
@@ -70,6 +74,14 @@ def main():
             for fa, fb in (("arm1", "arm2"), ("arm1", "tool"), ("arm2", "tool")):
                 for c in clashes(placed[fa], placed[fb]):
                     fails.append(f"j2 {j2} j3 {j3}: {c}")
+    # 4. printability
+    for p in B.PARTS:
+        if p["export"] and p["material"] in B.PRINTED:
+            fit = B.bed_fit(B.manufacturing_frame(p))
+            if fit is None:
+                fails.append(f"{p['id']} does not fit the bed")
+            else:
+                print(f"{p['id']:6s} fits at yaw {fit[0]:2d}: {fit[1]:.0f} x {fit[2]:.0f} x {fit[3]:.0f} mm")
     for f in fails:
         print("FAIL", f)
     print(f"{len(fails)} failures")

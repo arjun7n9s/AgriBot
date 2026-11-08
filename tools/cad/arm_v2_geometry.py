@@ -40,26 +40,38 @@ J2_PULLEY_TEETH = 92                      # printed, same ratio as stock
 GT2_PITCH = 2.0
 J3_BELT = 400.0                           # on hand (two bought)
 
-# Arm 1 sandwich (STEP z)
-A1_BOT = (228.0, 232.0)                   # 6061-T6, 4 mm
-A1_TOP = (268.0, 272.0)                   # 6061-T6, 4 mm
-# J2 stack (STEP z)
+# Printer: Anycubic Kobra S1, 250 x 250 x 250 mm bed (datasheet). Every made part is printed on it.
+BED = (250.0, 250.0, 250.0)               # measured (datasheet)
+BED_MARGIN = 5.0                          # assumed: keep 5 mm off the bed edges
+WALL = 3.0                                # assumed: printed side walls, 3 mm (about 7 perimeters of 0.42)
+
+# Arm 1: printed tray (floor, walls, root wall, columns, idler boss) and a printed lid (STEP z)
+A1_FLOOR = (224.0, 232.0)                 # assumed: 8 mm PETG floor
+A1_LID = (268.0, 273.0)                   # assumed: 5 mm PETG lid
+# J2 stack (STEP z). Spindle comes in from below: flange, then 35 mm, then 30 mm, so it passes every bearing.
 J2_FLANGE = (196.0, 204.0)
 J2_THRUST_LO = (204.0, 216.0)             # 51107, 35 x 52 x 12 (on hand)
-J2_HUB = (216.0, 228.0)
+J2_HUB = (216.0, 224.0)                   # printed hub under the Arm 1 floor
 J2_RADIAL = (216.0, 223.0)                # 6806, 30 x 42 x 7 (on hand)
-J2_THRUST_HI = (228.0, 240.0)             # 51107
+J2_THRUST_HI = (228.0, 240.0)             # 51107, sits in a 4 mm counterbore in the Arm 1 floor
 J2_PULLEY = (240.0, 254.4)
-# Arm 2 sandwich (STEP z)
-A2_TOP = (192.0, 196.0)                   # 6061-T6, 4 mm
-A2_BOT = (164.0, 167.0)                   # 6061-T6, 3 mm
+# Arm 2: printed body (top plate, walls, columns) and a printed cover that carries the J3 housing (STEP z)
+A2_TOP = (190.0, 196.0)                   # assumed: 6 mm PETG top, carries the J2 spindle flange
+A2_COVER = (160.0, 165.0)                 # assumed: 5 mm PETG cover; J3 housing boss below it
 J3_BELT_Z = 179.5
-# J3 stack (STEP z)
-J3_HUB = (148.0, 164.0)
-J3_RADIAL_LO = (148.0, 155.0)             # 6806 (on hand)
-J3_RADIAL_HI = (157.0, 164.0)             # 6807, 35 x 47 x 7 (on hand)
-J3_FLANGE = (138.0, 144.0)                # tool flange; its lower face is the tool frame z = 0
+# J3 stack (STEP z). 6807 below, 6806 above, so the stepped spindle goes in from below.
+J3_HUB = (148.0, 160.0)                   # boss under the cover
+J3_RADIAL_LO = (148.0, 155.0)             # 6807, 35 x 47 x 7 (on hand)
+J3_WEB = (155.0, 158.0)
+J3_RADIAL_HI = (158.0, 165.0)             # 6806, 30 x 42 x 7 (on hand)
+J3_FLANGE = (138.0, 146.0)                # tool flange; its lower face is the tool frame z = 0
+J3_SPINDLE_TOP = 172.0
 TOOL_Z0 = J3_FLANGE[0]
+
+# Heat-set inserts (to buy): M4 x 8 long, 5.6 mm hole [assumed: common brass knurled insert]
+INSERT_M4 = dict(hole=5.6, depth=8.5)
+# M4 hex nut 7.0 mm across flats, 3.2 thick; side-entry trap
+NUT_M4 = dict(af=7.0, t=3.2)
 
 # J3 motor: NEMA17 "4.2 kg.cm economy" (on hand). Body length assumed 40 mm (17HS4401 class).
 NEMA17 = dict(side=42.3, length=40.0, boss_d=22.0, boss_h=2.0, shaft_d=5.0, shaft_len=24.0, hole_sq=31.0)
@@ -88,7 +100,7 @@ def centre_for_belt(length, t1, t2):
 
 # Joint limits checked for collisions by tools/cad/check_arm_v2.py
 J2_LIMITS = (-150.0, 150.0)   # no Arm 1 / Arm 2 / tool contact over the full range
-J3_LIMITS = (-110.0, 95.0)    # beyond these the camera on the tool meets the underside of Arm 2
+J3_LIMITS = (-105.0, 85.0)    # beyond these the camera or its bracket meets the underside of Arm 2 (5 deg sweep)
 
 J3_BELT_C = centre_for_belt(J3_BELT, J3_MOTOR_TEETH, J3_PULLEY_TEETH)   # 143.3
 J3_MOTOR_X = L2 - J3_BELT_C                                             # arm2 x, 56.7
@@ -99,12 +111,16 @@ SLOT_W = 8.0             # assumed: passes a 3-5 mm distal pedicel (Weng 2024), 
 SLOT_LEN = 12.0          # straight slot ahead of the round end
 V_HALF_ANGLE = 30.0      # assumed: 60 deg included V
 MOUTH_W = 50.0           # assumed: catches a pedicel up to +-25 mm off the aim (sim errors were 6-24 mm)
-DECK_T = 3.0             # 6061-T6
-VPLATE_T = 1.5           # SS304 or SS410 laser cut; its slot edge is the shear edge
-LEVER_T = 2.0            # blade-lever, SS420 or EN42 spring steel, hardened, single 25 deg bevel
-PIVOT = (68.0, 0.0)      # blade-lever pivot (M4 shoulder bolt)
+DECK_T = 6.0             # printed PETG deck
+LEVER_T = 6.5            # printed PETG blade-lever; the moving blade sits in a pocket on its underside
+# Blades: 18 mm snap-off cutter blade (Olfa LB / generic), snapped to 3 segments. Bought, replaceable.
+BLADE = dict(w=18.0, t=0.5, seg=12.5, n=3, score_deg=60.0)   # assumed: check against your blades (pitch, angle)
+BLADE_EXPOSED = 3.0      # assumed: edge strip left outside the lever outline
+FIXED_EDGE_Y = SLOT_W / 2   # the fixed blade's edge is the +y side of the slot, flush with the deck top
+PIVOT = (68.0, 0.0)      # blade-lever pivot (M4 bolt, spring preload)
 EDGE_R = THROAT_X - 2.0 - PIVOT[0]   # pivot to pedicel centre, 20 mm
 EDGE_SLICE = -15.0       # assumed: edge raked so the cut pulls the pedicel into the slot end
+EDGE_S = (-14.0, 23.5)   # edge span along the edge line (lever frame), one 3-segment blade piece
 LEVER_OPEN, LEVER_CLOSED = -32.0, 18.0
 
 # Four-bar from the servo horn to the lever (chosen by the search in arm_v2_calcs.py)
@@ -118,13 +134,13 @@ BASKET_IN_X = (THROAT_X - 47.6, THROAT_X + 47.5)   # 95 mm inside, front open
 BASKET_IN_HALF_W = 47.5
 BASKET_WALL = 2.4
 PAD_TOP_Z = -118.0       # fruit lands here (10 mm foam on the door)
-LIP_TOP_Z = -108.0       # TPU lip on the door's front edge
+LIP_TOP_Z = -108.0       # 10 mm EVA strip glued on the door's front edge (no TPU on hand)
 DOOR_HINGE = (47.5, -131.0)   # (y, z), hinge axis along x
 
 # MG996R and DS3225 share the standard servo case and 25T spline (datasheets)
 SERVO = dict(l=40.7, w=19.7, h=37.0, tab_l=54.0, tab_t=2.5, tab_z=28.0, shaft_off=10.2)
 
-CAMERA = dict(w=42.0, h=42.0, d=23.0, tilt=20.0)   # Intel RealSense D405 class, datasheet size
+CAMERA = dict(w=42.0, h=42.0, d=23.0, tilt=20.0)   # Intel RealSense D405 class, datasheet size (to buy)
 
 
 def servo_angle_for_lever(theta):

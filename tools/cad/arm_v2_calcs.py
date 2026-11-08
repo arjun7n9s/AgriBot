@@ -23,18 +23,28 @@ OUT = ROOT / "cad" / "arm-v2"
 IMG = ROOT / "docs" / "images"
 
 # ------------------------------------------------------------------ field and rover (assumed)
-PLANT_LINE = 305.0        # J1 axis to the plant line, mm: sim layout (J1 at y -0.395 m, line at -0.70 m). Ask Tejesh.
+PLANT_LINE = 305.0        # J1 axis to the plant line, mm [assumed]: 0.70 m rover in a 0.90 m furrow, as in the sim
+                          # (J1 at y -0.395 m, plant line at -0.70 m). Replace with a field measurement.
 FRUIT_IN, FRUIT_OUT = 150.0, 100.0   # fruit hang from 150 mm outside the plant line to 100 mm beyond it [assumed]
 STOP_HALF = 225.0         # one rover stop covers +-225 mm along the row (half the 450 mm plant spacing x 2) [assumed]
 J2_LIM = 150.0            # deg, as stock
 
 # ------------------------------------------------------------------ bought-part masses, g [assumed, typical datasheet values]
-BOUGHT_G = {"51107": 85, "6806": 19, "6807": 25, "608": 12, "nema17_40": 280, "servo": 60, "camera": 60,
-            "idler": 8, "gt2_20t": 9, "belt": 6, "fasteners_arm1": 60, "fasteners_arm2": 40, "fasteners_tool": 25,
-            "switch": 3, "wiring_tool": 20}
+BOUGHT_G = {"51107": 85, "6806": 19, "6807": 25, "608": 12, "nema17_40": 280, "servo": 65, "camera": 60,
+            "idler": 8, "gt2_20t": 9, "belt": 6, "fasteners_arm1": 80, "fasteners_arm2": 60, "fasteners_tool": 30,
+            "switch": 3, "wiring_tool": 20, "m8_axle": 25, "stock_compound_pulley": 25}
+
+# ------------------------------------------------------------------ printed PETG [assumed: printed, not filament, values]
+E_PETG = 1.8e3            # N/mm2, printed at 5 walls (filament datasheets give about 2.0-2.1 GPa)
+G_PETG = E_PETG / 2.7     # N/mm2, shear modulus
+# Link sections (outer width, height, top, bottom, wall), mm, from arm_v2_geometry.py and build_arm_v2.py
+ARM1_SECTION = dict(b=80.0, h=G.A1_LID[1] - G.A1_FLOOR[0], t_top=G.A1_LID[1] - G.A1_LID[0],
+                    t_bot=G.A1_FLOOR[1] - G.A1_FLOOR[0], w=G.WALL, span=G.L1 - G.CARRIAGE_FACE_X)
+ARM2_SECTION = dict(b=76.0, h=G.A2_TOP[1] - G.A2_COVER[0], t_top=G.A2_TOP[1] - G.A2_TOP[0],
+                    t_bot=G.A2_COVER[1] - G.A2_COVER[0], w=G.WALL, span=G.L2)
 
 # ------------------------------------------------------------------ servo torque (usable, at about half of stall) [assumed]
-SERVOS = {"MG996R (on hand), 0.5 N m usable": 0.5, "DS3225MG (recommended), 1.2 N m usable": 1.2}
+SERVOS = {"MG996R (on hand), 0.5 N m usable": 0.5, "DS3225MG (to buy), 1.2 N m usable": 1.2}
 PEDICEL_FORCE = {"3.0 mm": 19.6, "3.5 mm": 26.7, "4.0 mm": 33.0}   # measured, Weng et al. 2024 (distal pedicel)
 FORCE_TARGET = 40.0
 
@@ -109,7 +119,7 @@ def masses():
         + BOUGHT_G["6806"] + 2 * BOUGHT_G["608"] + 2 * BOUGHT_G["idler"] + 2 * BOUGHT_G["belt"] + BOUGHT_G["fasteners_arm1"]
     arm2 = sum(v for k, v in made.items() if k.startswith(("A2-", "J3-"))) + BOUGHT_G["6806"] + BOUGHT_G["6807"] \
         + BOUGHT_G["nema17_40"] + BOUGHT_G["gt2_20t"] + BOUGHT_G["belt"] + BOUGHT_G["fasteners_arm2"]
-    tool = sum(v for k, v in made.items() if k.startswith("T-")) + 2 * BOUGHT_G["servo"] + BOUGHT_G["camera"] \
+    tool = sum(v for k, v in made.items() if k.startswith(("T-", "BUY-14", "BUY-15"))) + 2 * BOUGHT_G["servo"] + BOUGHT_G["camera"] \
         + BOUGHT_G["switch"] + BOUGHT_G["wiring_tool"] + BOUGHT_G["fasteners_tool"]
     return dict(arm1_g=round(arm1), arm2_g=round(arm2), tool_g=round(tool))
 
@@ -129,6 +139,57 @@ def loads(m):
                 J1_torque_for_3_rad_s2_Nm=round(i_j1 * 3.0, 3),
                 J1_motor_torque_available_Nm=round(0.69 * 20 * 0.85 * 0.5, 2),
                 Z_lift_N=round(z_load, 1))
+
+
+def box_section(sec):
+    """Second moment (bending about the horizontal axis) and torsion constant of a closed printed box, mm^4."""
+    b, h, tt, tb, w = sec["b"], sec["h"], sec["t_top"], sec["t_bot"], sec["w"]
+    parts = [(b * tt, h - tt / 2, b * tt ** 3 / 12), (b * tb, tb / 2, b * tb ** 3 / 12)]
+    hw = h - tt - tb
+    parts += [(2 * w * hw, tb + hw / 2, 2 * w * hw ** 3 / 12)]
+    a = sum(p[0] for p in parts)
+    yc = sum(p[0] * p[1] for p in parts) / a
+    i = sum(p[2] + p[0] * (p[1] - yc) ** 2 for p in parts)
+    am = (b - w) * (h - (tt + tb) / 2)                    # area enclosed by the wall mid-lines
+    perim_over_t = 2 * (b - w) / w + (h - (tt + tb) / 2) * (1 / tt + 1 / tb)
+    j = 4 * am ** 2 / perim_over_t                        # Bredt
+    return i, j
+
+
+def stiffness(m):
+    """Sag of the cut point under the tool and the heaviest fruit, arm fully stretched, printed PETG links.
+    Worst case for twist: Arm 2 square to Arm 1, so its load twists Arm 1."""
+    g = 9.81
+    tool_n = (m["tool_g"] / 1000 + 0.25) * g
+    arm2_n = m["arm2_g"] / 1000 * g
+    motor_n = BOUGHT_G["nema17_40"] / 1000 * g
+    off = G.THROAT_X - 2.0                                 # cut point ahead of J3
+    i2, j2 = box_section(ARM2_SECTION)
+    i1, j1 = box_section(ARM1_SECTION)
+    l2, l1 = ARM2_SECTION["span"], ARM1_SECTION["span"]
+    # Arm 2 as a cantilever from J2: tool at L2 with its moment, own weight spread, motor near J2
+    m_tool = tool_n * off
+    d2 = (tool_n * l2 ** 3 / 3 + m_tool * l2 ** 2 / 2 + (arm2_n - motor_n) / l2 * l2 ** 4 / 8
+          + motor_n * G.J3_MOTOR_X ** 2 * (3 * l2 - G.J3_MOTOR_X) / 6) / (E_PETG * i2)
+    slope2 = (tool_n * l2 ** 2 / 2 + m_tool * l2 + (arm2_n - motor_n) * l2 ** 2 / 6) / (E_PETG * i2)
+    # Arm 1 as a cantilever from the carriage face: everything beyond J2 hangs on its end
+    p1 = tool_n + arm2_n
+    m1 = tool_n * (l2 + off) + (arm2_n - motor_n) * 0.5 * l2 + motor_n * G.J3_MOTOR_X
+    d1 = p1 * l1 ** 3 / (3 * E_PETG * i1)
+    slope1 = p1 * l1 ** 2 / (2 * E_PETG * i1)
+    twist1 = m1 * l1 / (G_PETG * j1)                       # rad, Arm 2 square to Arm 1
+    straight = d1 + slope1 * (l2 + off) + d2 + slope2 * off
+    square = d1 + twist1 * (l2 + off) + d2 + slope2 * off
+    # Root: Arm 1 hangs on 4 x M5 in the carriage face. The floor edge bears on the face; bolts take the moment.
+    m_root = (m["arm1_g"] / 1000 * g * 0.5 * l1 + arm2_n * (l1 + 0.5 * l2) + tool_n * (l1 + l2 + off))  # straight out
+    pivot_z = G.A1_FLOOR[0]
+    arms = [z - pivot_z for z in G.CARRIAGE_M5_Z]
+    f_top = m_root * arms[1] / (2 * sum(a * a for a in arms))   # per bolt, upper pair
+    return dict(E_PETG_N_mm2=E_PETG, arm1_I_mm4=round(i1), arm1_J_mm4=round(j1), arm2_I_mm4=round(i2), arm2_J_mm4=round(j2),
+                sag_at_cut_point_arm_straight_mm=round(straight, 2),
+                sag_at_cut_point_arm2_square_mm=round(square, 2),
+                arm1_twist_deg_arm2_square=round(math.degrees(twist1), 2),
+                root_moment_Nm=round(m_root / 1000, 2), root_upper_M5_tension_N=round(f_top, 0))
 
 
 def plot_reach(by_line):
@@ -154,9 +215,9 @@ def plot_reach(by_line):
     bx.plot(xs, [by_line[x]["stock"] * 100 for x in xs], "o-", color="#c0392b", label="stock (L2 136.5)")
     bx.plot(xs, [by_line[x]["v2"] * 100 for x in xs], "o-", color="#1f77b4", label="v2 (L2 200)")
     bx.axvline(PLANT_LINE, color="grey", ls=":", lw=1)
-    bx.annotate("sim layout", (PLANT_LINE + 4, 52), fontsize=7, color="grey")
+    bx.annotate("assumed", (PLANT_LINE + 4, 52), fontsize=7, color="grey")
     bx.set_ylim(50, 102)
-    bx.set_xlabel("J1 axis to plant line, mm (field number, ask Tejesh)")
+    bx.set_xlabel("J1 axis to plant line, mm (305 assumed)")
     bx.set_ylabel("fruit zone reachable, %")
     bx.set_title("Sensitivity to where the rover drives", fontsize=10)
     bx.legend(fontsize=7, loc="lower left")
@@ -201,6 +262,7 @@ def main():
     m = masses()
     res["mass"] = m
     res["loads"] = loads(m)
+    res["stiffness"] = stiffness(m)
     (OUT / "calcs.json").write_text(json.dumps(res, indent=2))
     plot_reach(res["reach"]["by_plant_line_mm"])
     plot_force(curves)

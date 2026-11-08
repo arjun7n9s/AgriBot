@@ -99,55 +99,73 @@ def centre_for_belt(length, t1, t2):
 
 
 # Joint limits checked for collisions by tools/cad/check_arm_v2.py
-J2_LIMITS = (-150.0, 150.0)   # no Arm 1 / Arm 2 / tool contact over the full range
+J2_LIMITS = (-120.0, 135.0)   # beyond these the folded tool meets the Z column rods (5 deg sweep, any J3)
 J3_LIMITS = (-105.0, 85.0)    # beyond these the camera or its bracket meets the underside of Arm 2 (5 deg sweep)
 
 J3_BELT_C = centre_for_belt(J3_BELT, J3_MOTOR_TEETH, J3_PULLEY_TEETH)   # 143.3
 J3_MOTOR_X = L2 - J3_BELT_C                                             # arm2 x, 56.7
 
-# ---------------------------------------------------------------- end effector (tool frame)
-THROAT_X = 90.0          # assumed: centre of the slot's round end
-SLOT_W = 8.0             # assumed: passes a 3-5 mm distal pedicel (Weng 2024), guides it
-SLOT_LEN = 12.0          # straight slot ahead of the round end
-V_HALF_ANGLE = 30.0      # assumed: 60 deg included V
-MOUTH_W = 50.0           # assumed: catches a pedicel up to +-25 mm off the aim (sim errors were 6-24 mm)
-DECK_T = 6.0             # printed PETG deck
-LEVER_T = 6.5            # printed PETG blade-lever; the moving blade sits in a pocket on its underside
-# Blades: 18 mm snap-off cutter blade (Olfa LB / generic), snapped to 3 segments. Bought, replaceable.
-BLADE = dict(w=18.0, t=0.5, seg=12.5, n=3, score_deg=60.0)   # assumed: check against your blades (pitch, angle)
-BLADE_EXPOSED = 3.0      # assumed: edge strip left outside the lever outline
-FIXED_EDGE_Y = SLOT_W / 2   # the fixed blade's edge is the +y side of the slot, flush with the deck top
-PIVOT = (68.0, 0.0)      # blade-lever pivot (M4 bolt, spring preload)
-EDGE_R = THROAT_X - 2.0 - PIVOT[0]   # pivot to pedicel centre, 20 mm
-EDGE_SLICE = -15.0       # assumed: edge raked so the cut pulls the pedicel into the slot end
-EDGE_S = (-14.0, 23.5)   # edge span along the edge line (lever frame), one 3-segment blade piece
-LEVER_OPEN, LEVER_CLOSED = -32.0, 18.0
+# ---------------------------------------------------------------- end effector v3 (tool frame)
+# Suction draw-in, hood registration, guillotine cut. Tool frame: origin on the J3 axis at the flange face,
+# x forward (toward the fruit), z up. Everything hangs below the flange (z < 0).
+#
+# Bought parts and their sizes (check yours against these before printing):
+CUP = dict(d=25.0, h=19.0)          # assumed: 1.5-fold silicone bellows cup, 25 mm (SMC ZP25B class), M5 male stem
+CUP_FITTING = dict(d=10.0, l=10.0)  # assumed: M5 hex adapter + PC4-M5 push-in fitting for 4 mm PU tube
+ROD = dict(d=8.0, l=160.0)          # 8 mm hardened smooth rod, cut to 160 mm
+LM8UU = dict(d=15.0, l=24.0)        # measured (datasheet): LM8UU linear bearing 8 x 15 x 24
+UTILITY_BLADE = dict(edge=61.0, back=37.0, h=19.0, t=0.6)   # assumed: standard trapezoid utility blade
+SS_STRIP_T = 1.0                    # assumed: strip cut from the stainless ruler on hand; its factory edge shears
+SERVO = dict(l=40.7, w=19.7, h=37.0, tab_l=54.0, tab_t=2.5, tab_z=28.0, shaft_off=10.2)  # MG996R / DS3225MG case
+CAMERA = dict(w=32.0, h=32.0, d=8.0, lens_d=14.0, lens_l=12.0, tilt=30.0)   # assumed: 32 mm USB board camera
 
-# Four-bar from the servo horn to the lever (chosen by the search in arm_v2_calcs.py)
-SERVO_SHAFT = (28.3, -42.0)
-HORN_R = 14.0            # hole at 14 mm on the stock MG996R single-arm horn (drill if needed)
-LINK_L = 40.0
-LEVER_IN_R = 30.0
-LEVER_IN_PHASE = 200.0   # input arm direction relative to the blade radial line
+# Hood: the plate the fruit is drawn up under. Its slot takes the pedicel; the cut is just above it.
+HOOD_TOP = -30.0
+HOOD_T = 4.0
+HOOD_BOT = HOOD_TOP - HOOD_T
+HOOD_X = (62.0, 160.0)
+HOOD_Y = (-46.0, 28.0)
+SLOT_W = 8.0                        # assumed: passes a 3-5 mm distal pedicel (Weng 2024)
+SLOT_X = (78.0, 130.0)              # straight slot; the calyx lands at x 89-109 for 40-85 mm fruit
+MOUTH_W = 50.0                      # V mouth at the hood front: catches the pedicel +-25 mm off centre
+SHEAR_EDGE_Y = SLOT_W / 2           # the steel strip's edge, 0.6 mm proud of the printed slot wall
+STRIP_X = (76.0, 130.0)
 
-BASKET_IN_X = (THROAT_X - 47.6, THROAT_X + 47.5)   # 95 mm inside, front open
-BASKET_IN_HALF_W = 47.5
-BASKET_WALL = 2.4
-PAD_TOP_Z = -118.0       # fruit lands here (10 mm foam on the door)
-LIP_TOP_Z = -108.0       # 10 mm EVA strip glued on the door's front edge (no TPU on hand)
-DOOR_HINGE = (47.5, -131.0)   # (y, z), hinge axis along x
+# Suction slide
+CUP_Z = HOOD_BOT - 26.0             # cup axis: aimed 26 mm below the fruit top, which then seats on the hood
+CUP_FACE_IN = 70.0                  # cup face, slide retracted (fruit under the hood)
+SLIDE_SERVO = (1.0, 38.0)           # MG996R shaft (down), crank-slider along x at y 38
+SLIDE_CRANK_R, SLIDE_LINK = 36.0, 70.0
+TAB_TO_CUP = 35.0                   # slide tab sits this far behind the cup face
 
-# MG996R and DS3225 share the standard servo case and 25T spline (datasheets)
-SERVO = dict(l=40.7, w=19.7, h=37.0, tab_l=54.0, tab_t=2.5, tab_z=28.0, shaft_off=10.2)
+# Cutter: utility blade in a carrier that slides across the slot (+y), raked 15 deg to the slot
+BLADE_RAKE = 15.0                   # edge at 15 deg to x: 75 deg slicing angle (Weng 2024: 63-78 deg)
+BLADE_X_MID = 104.0
+BLADE_Y_OPEN, BLADE_Y_CLOSED = -13.0, 13.0   # edge y at BLADE_X_MID: the whole edge clears the slot by 1 mm
+BLADE_EXPOSED = 3.0
+CARRIER_PINS = [(66.0, -24.0), (142.0, -24.0)]   # M4 shoulder bolts + OD 6 springs (preload)
+CUT_SERVO = (102.0, -64.0)          # DS3225MG shaft (up), crank-slider along y
+CUT_CRANK_R, CUT_LINK = 13.0, 30.0
+CARRIER_PIN_DY = -34.0             # pin y open: -47, closed: -21              # link pin on the carrier, relative to the edge line at BLADE_X_MID
 
-CAMERA = dict(w=42.0, h=42.0, d=23.0, tilt=20.0)   # Intel RealSense D405 class, datasheet size (to buy)
+
+def crank_slider(theta_deg, r, l):
+    """Aligned crank-slider: slider position along its axis from the crank centre."""
+    t = math.radians(theta_deg)
+    return r * math.cos(t) + math.sqrt(l * l - (r * math.sin(t)) ** 2)
 
 
-def servo_angle_for_lever(theta):
-    """Horn angle (deg) that puts the blade-lever at theta (deg), on the working branch."""
-    q = (PIVOT[0] + LEVER_IN_R * math.cos(math.radians(theta + LEVER_IN_PHASE)),
-         PIVOT[1] + LEVER_IN_R * math.sin(math.radians(theta + LEVER_IN_PHASE)))
-    dx, dy = q[0] - SERVO_SHAFT[0], q[1] - SERVO_SHAFT[1]
-    d = math.hypot(dx, dy)
-    cosv = (HORN_R ** 2 + d ** 2 - LINK_L ** 2) / (2 * HORN_R * d)
-    return math.degrees(math.atan2(dy, dx)) - math.degrees(math.acos(cosv)), q
+def cup_face(s):
+    """Cup face x for slide command s (0 = retracted, 1 = extended). Crank goes 180 -> 0 deg through +y."""
+    tab = SLIDE_SERVO[0] + crank_slider(180.0 * (1.0 - s), SLIDE_CRANK_R, SLIDE_LINK)
+    return tab + TAB_TO_CUP
+
+
+def blade_y(c):
+    """Edge y at BLADE_X_MID for cutter command c (0 = open, 1 = closed)."""
+    pin = CUT_SERVO[1] + crank_slider(180.0 * (1.0 - c), CUT_CRANK_R, CUT_LINK)
+    return pin - CARRIER_PIN_DY
+
+
+STROKE = cup_face(1.0) - cup_face(0.0)                     # 72 mm
+TOOL_REACH = cup_face(1.0) + 32.0                          # J3 axis to a mid-size fruit centre at first contact

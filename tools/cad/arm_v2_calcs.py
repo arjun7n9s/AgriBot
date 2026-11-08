@@ -27,12 +27,16 @@ PLANT_LINE = 305.0        # J1 axis to the plant line, mm [assumed]: 0.70 m rove
                           # (J1 at y -0.395 m, plant line at -0.70 m). Replace with a field measurement.
 FRUIT_IN, FRUIT_OUT = 150.0, 100.0   # fruit hang from 150 mm outside the plant line to 100 mm beyond it [assumed]
 STOP_HALF = 225.0         # one rover stop covers +-225 mm along the row (half the 450 mm plant spacing x 2) [assumed]
-J2_LIM = 150.0            # deg, as stock
+J2_LIM = 135.0            # deg: the elbow side with the larger limit (J2 -120 to +135, tool vs Z column)
 
 # ------------------------------------------------------------------ bought-part masses, g [assumed, typical datasheet values]
-BOUGHT_G = {"51107": 85, "6806": 19, "6807": 25, "608": 12, "nema17_40": 280, "servo": 65, "camera": 60,
+BOUGHT_G = {"51107": 85, "6806": 19, "6807": 25, "608": 12, "nema17_40": 280, "servo": 60, "camera": 15,
             "idler": 8, "gt2_20t": 9, "belt": 6, "fasteners_arm1": 80, "fasteners_arm2": 60, "fasteners_tool": 30,
-            "switch": 3, "wiring_tool": 20, "m8_axle": 25, "stock_compound_pulley": 25}
+            "switch": 3, "wiring_tool": 20, "m8_axle": 25, "stock_compound_pulley": 25, "cup_fitting": 10,
+            "lm8uu": 12, "hose_tool": 10, "magnets": 2}
+APPROACH = 45.0           # the tool may approach up to +-45 deg off square to the row (J3 yaw)
+# Suction: 1.5-fold 25 mm bellows cup on a -50 kPa line [assumed: small 12 V diaphragm pump reaches -60 to -65 kPa]
+VACUUM_KPA = 50.0
 
 # ------------------------------------------------------------------ printed PETG [assumed: printed, not filament, values]
 E_PETG = 1.8e3            # N/mm2, printed at 5 walls (filament datasheets give about 2.0-2.1 GPa)
@@ -47,6 +51,7 @@ ARM2_SECTION = dict(b=76.0, h=G.A2_TOP[1] - G.A2_COVER[0], t_top=G.A2_TOP[1] - G
 SERVOS = {"MG996R (on hand), 0.5 N m usable": 0.5, "DS3225MG (to buy), 1.2 N m usable": 1.2}
 PEDICEL_FORCE = {"3.0 mm": 19.6, "3.5 mm": 26.7, "4.0 mm": 33.0}   # measured, Weng et al. 2024 (distal pedicel)
 FORCE_TARGET = 40.0
+FRUIT_X = 102.0           # held fruit centre ahead of J3 (mid-size fruit under the hood)
 
 
 def belts():
@@ -79,34 +84,52 @@ def ik_ok(xw, yw, l1, l2):
     return math.degrees(math.acos(c)) <= J2_LIM
 
 
-def reach(l2, tool, plant_line=None):
-    """Fraction of the fruit zone where the tool can reach a cut point, approaching square to the row."""
+def reach(l2, tool, plant_line=None, spread=APPROACH):
+    """Fraction of the fruit zone the tool can reach. The wrist sits `tool` behind the fruit along the approach
+    direction, which may be up to `spread` deg off square to the row."""
     plant_line = PLANT_LINE if plant_line is None else plant_line
     ok = tot = 0
     pts_ok, pts_no = [], []
+    angles = [0.0] + [a * k for a in range(5, int(spread) + 1, 5) for k in (-1, 1)]
     for i in range(0, 61):
         x = -STOP_HALF + i * (2 * STOP_HALF / 60)
         for j in range(0, 41):
             y = plant_line - FRUIT_IN + j * ((FRUIT_IN + FRUIT_OUT) / 40)
             tot += 1
-            good = ik_ok(x, y - tool, G.L1, l2)          # wrist sits `tool` behind the cut point
+            good = any(ik_ok(x - tool * math.sin(math.radians(a)), y - tool * math.cos(math.radians(a)), G.L1, l2)
+                       for a in angles)
             ok += good
             (pts_ok if good else pts_no).append((x, y))
     return ok / tot, pts_ok, pts_no
 
 
-def four_bar_force():
+def cutter_force():
+    """Force on the blade carrier across the slot (aligned crank-slider), for each servo, against edge position."""
     out = {}
-    ths = [G.LEVER_OPEN + i * 0.25 for i in range(int((G.LEVER_CLOSED - G.LEVER_OPEN) / 0.25) + 1)]
-    al = [G.servo_angle_for_lever(t)[0] for t in ths]
-    ma = [abs((al[i + 1] - al[i]) / (ths[i + 1] - ths[i])) for i in range(len(ths) - 1)]
-    r_s = G.EDGE_R / 1000.0
+    pts = []
+    for i in range(1, 180):
+        th = math.radians(i)
+        r, l = G.CUT_CRANK_R, G.CUT_LINK
+        dy = r * math.sin(th) + r * r * math.sin(th) * math.cos(th) / math.sqrt(l * l - (r * math.sin(th)) ** 2)  # mm/rad
+        y = G.blade_y(1.0 - i / 180.0)
+        pts.append((y, dy))
     for name, torque in SERVOS.items():
-        out[name] = [(round((ths[i] + ths[i + 1]) / 2, 2), round(torque * ma[i] / r_s, 1)) for i in range(len(ma))]
-    span = abs(al[-1] - al[0])
-    cut = [m for t, m in zip(ths, ma) if -6 <= t <= 12]
-    return out, dict(servo_travel_deg=round(span, 1), min_ratio_in_cut=round(min(cut), 2),
-                     edge_radius_mm=G.EDGE_R)
+        out[name] = [(round(y, 2), round(torque * 1000.0 / dy, 1)) for y, dy in pts]
+    half = G.SLOT_W / 2 + G.UTILITY_BLADE["edge"] / 2 * math.sin(math.radians(G.BLADE_RAKE)) * (
+        (G.SLOT_X[1] - G.SLOT_X[0]) / G.UTILITY_BLADE["edge"])
+    return out, dict(stroke_mm=round(G.blade_y(1) - G.blade_y(0), 1), crank_r_mm=G.CUT_CRANK_R,
+                     slicing_angle_deg=90 - G.BLADE_RAKE, crossing_band_mm=round(half, 1))
+
+
+def suction_and_slide():
+    a = math.pi * (G.CUP["d"] / 2000.0) ** 2
+    hold = VACUUM_KPA * 1000 * a
+    slide_min = SERVOS["MG996R (on hand), 0.5 N m usable"] / (G.SLIDE_CRANK_R / 1000.0)
+    return dict(cup_mm=G.CUP["d"], vacuum_kPa=VACUUM_KPA, hold_N_theoretical=round(hold, 1),
+                hold_N_derated_50pc=round(hold / 2, 1), slide_stroke_mm=round(G.STROKE, 1),
+                slide_force_N_min_MG996R=round(slide_min, 1),
+                draw_in_force_N_estimate="3-6 (250 g fruit lifted on its stem, plus friction under the hood)",
+                tool_reach_mm=round(G.TOOL_REACH, 1))
 
 
 def masses():
@@ -119,7 +142,8 @@ def masses():
         + BOUGHT_G["6806"] + 2 * BOUGHT_G["608"] + 2 * BOUGHT_G["idler"] + 2 * BOUGHT_G["belt"] + BOUGHT_G["fasteners_arm1"]
     arm2 = sum(v for k, v in made.items() if k.startswith(("A2-", "J3-"))) + BOUGHT_G["6806"] + BOUGHT_G["6807"] \
         + BOUGHT_G["nema17_40"] + BOUGHT_G["gt2_20t"] + BOUGHT_G["belt"] + BOUGHT_G["fasteners_arm2"]
-    tool = sum(v for k, v in made.items() if k.startswith(("T-", "BUY-14", "BUY-15"))) + 2 * BOUGHT_G["servo"] + BOUGHT_G["camera"] \
+    tool = sum(v for k, v in made.items() if k.startswith(("T-", "BUY-20", "BUY-22"))) + 2 * BOUGHT_G["servo"] \
+        + BOUGHT_G["camera"] + BOUGHT_G["cup_fitting"] + 2 * BOUGHT_G["lm8uu"] + BOUGHT_G["hose_tool"] + BOUGHT_G["magnets"] \
         + BOUGHT_G["switch"] + BOUGHT_G["wiring_tool"] + BOUGHT_G["fasteners_tool"]
     return dict(arm1_g=round(arm1), arm2_g=round(arm2), tool_g=round(tool))
 
@@ -130,10 +154,10 @@ def loads(m):
     fruit = 0.25
     # J2 bending moment from Arm 2 (CoM ~ 0.45 L2, motor at J3_MOTOR_X) + tool + heaviest fruit at L2 + 60 mm
     motor = BOUGHT_G["nema17_40"] / 1000
-    m_j2 = g * ((a2 - motor) * 0.45 * G.L2 + motor * G.J3_MOTOR_X + (tl + fruit) * (G.L2 + 60)) / 1000
+    m_j2 = g * ((a2 - motor) * 0.45 * G.L2 + motor * G.J3_MOTOR_X + (tl + fruit) * (G.L2 + FRUIT_X)) / 1000
     # J1 inertia about J1 (point masses), and torque for 3 rad/s^2
     a1 = m["arm1_g"] / 1000
-    i_j1 = (a1 * (0.55 * G.L1) ** 2 + a2 * (G.L1 + 0.45 * G.L2) ** 2 + (tl + fruit) * (G.L1 + G.L2 + 60) ** 2) / 1e6
+    i_j1 = (a1 * (0.55 * G.L1) ** 2 + a2 * (G.L1 + 0.45 * G.L2) ** 2 + (tl + fruit) * (G.L1 + G.L2 + FRUIT_X) ** 2) / 1e6
     z_load = g * (a1 + a2 + tl + fruit + 0.5)        # + carriage share
     return dict(J2_moment_Nm=round(m_j2, 2), J1_inertia_kgm2=round(i_j1, 4),
                 J1_torque_for_3_rad_s2_Nm=round(i_j1 * 3.0, 3),
@@ -163,7 +187,7 @@ def stiffness(m):
     tool_n = (m["tool_g"] / 1000 + 0.25) * g
     arm2_n = m["arm2_g"] / 1000 * g
     motor_n = BOUGHT_G["nema17_40"] / 1000 * g
-    off = G.THROAT_X - 2.0                                 # cut point ahead of J3
+    off = FRUIT_X                                          # held fruit ahead of J3
     i2, j2 = box_section(ARM2_SECTION)
     i1, j1 = box_section(ARM1_SECTION)
     l2, l1 = ARM2_SECTION["span"], ARM1_SECTION["span"]
@@ -195,7 +219,7 @@ def stiffness(m):
 def plot_reach(by_line):
     fig, (ax, bx) = plt.subplots(1, 2, figsize=(10.5, 4.6), dpi=150, gridspec_kw=dict(width_ratios=[1.35, 1]))
     line = 355.0
-    for (l2, tool), name, col in (((136.5, 64.0), "stock: L2 136.5", "#c0392b"), ((G.L2, G.THROAT_X - 2.0), "v2: L2 200", "#1f77b4")):
+    for (l2, tool), name, col in (((136.5, 64.0), "stock: L2 136.5", "#c0392b"), ((G.L2, G.TOOL_REACH), "v2: L2 200, suction tool", "#1f77b4")):
         frac, ok, no = reach(l2, tool, line)
         ax.scatter([p[0] for p in ok], [p[1] for p in ok], s=5 if col == "#1f77b4" else 2.5, color=col,
                    alpha=0.45 if col == "#1f77b4" else 0.9, label=f"{name}: {frac*100:.0f}% of the zone", zorder=2 if col == "#c0392b" else 1)
@@ -209,11 +233,11 @@ def plot_reach(by_line):
     ax.set_ylim(-60, 520)
     ax.set_xlabel("along the row, mm")
     ax.set_ylabel("out from the J1 axis, mm")
-    ax.set_title("Reachable cut points, tool square to the row", fontsize=10)
+    ax.set_title("Reachable fruit, approach within 45 deg of square", fontsize=10)
     ax.legend(fontsize=7, loc="lower left")
     xs = sorted(by_line)
     bx.plot(xs, [by_line[x]["stock"] * 100 for x in xs], "o-", color="#c0392b", label="stock (L2 136.5)")
-    bx.plot(xs, [by_line[x]["v2"] * 100 for x in xs], "o-", color="#1f77b4", label="v2 (L2 200)")
+    bx.plot(xs, [by_line[x]["v2"] * 100 for x in xs], "o-", color="#1f77b4", label="v2 (L2 200, suction tool)")
     bx.axvline(PLANT_LINE, color="grey", ls=":", lw=1)
     bx.annotate("assumed", (PLANT_LINE + 4, 52), fontsize=7, color="grey")
     bx.set_ylim(50, 102)
@@ -231,14 +255,15 @@ def plot_force(curves):
         ax.plot([p[0] for p in pts], [min(p[1], 400) for p in pts], color=col, label=name)
     for name, f in PEDICEL_FORCE.items():
         ax.axhline(f, color="grey", lw=0.8, ls=":")
-    ax.annotate("measured pedicel cut force, 3.0 / 3.5 / 4.0 mm (Weng 2024)", (G.LEVER_OPEN + 0.5, 8), fontsize=7, color="grey")
+    ax.annotate("measured pedicel cut force, 3.0 / 3.5 / 4.0 mm (Weng 2024)", (G.blade_y(0) + 0.3, 8), fontsize=7, color="grey")
     ax.axhline(FORCE_TARGET, color="k", lw=1, ls="--", label="design target 40 N")
-    ax.axvspan(-6, 12, color="orange", alpha=0.12, label="blade crossing the pedicel")
-    ax.set_xlabel("blade-lever angle, deg (open -32, closed +18)")
-    ax.set_ylabel("force at the pedicel, N")
-    ax.set_ylim(0, 260)
+    band = 4.0 + 52.0 * math.tan(math.radians(G.BLADE_RAKE)) / 2
+    ax.axvspan(-band, band, color="orange", alpha=0.12, label="edge crossing the slot")
+    ax.set_xlabel("blade edge position across the slot, mm (open -12, closed +12)")
+    ax.set_ylabel("force across the slot, N")
+    ax.set_ylim(0, 300)
     ax.legend(fontsize=7)
-    ax.set_title("Cutter force over the stroke", fontsize=10)
+    ax.set_title("Cutter force over the stroke (crank 12 mm, link 30 mm)", fontsize=10)
     fig.tight_layout()
     fig.savefig(IMG / "cutter_force.png")
 
@@ -246,19 +271,22 @@ def plot_force(curves):
 def main():
     res = {"belts": belts(), "ratios": ratios()}
     stock = reach(136.5, 64.0)
-    v2 = reach(G.L2, G.THROAT_X - 2.0)
+    v2 = reach(G.L2, G.TOOL_REACH)
     res["reach"] = {"stock_fraction": round(stock[0], 3), "v2_fraction": round(v2[0], 3),
                     "assumptions": dict(plant_line_mm=PLANT_LINE, fruit_in_mm=FRUIT_IN, fruit_out_mm=FRUIT_OUT,
-                                        stop_half_mm=STOP_HALF, j2_limit_deg=J2_LIM)}
+                                        stop_half_mm=STOP_HALF, j2_limit_deg=J2_LIM, approach_deg=APPROACH,
+                                        tool_reach_mm=round(G.TOOL_REACH, 1))}
     for l2 in (160.0, 180.0, 200.0, 228.0):
-        res["reach"][f"L2_{int(l2)}"] = round(reach(l2, G.THROAT_X - 2.0)[0], 3)
+        res["reach"][f"L2_{int(l2)}"] = round(reach(l2, G.TOOL_REACH)[0], 3)
     res["reach"]["by_plant_line_mm"] = {
-        int(d): dict(stock=round(reach(136.5, 64.0, d)[0], 3), v2=round(reach(G.L2, G.THROAT_X - 2.0, d)[0], 3))
+        int(d): dict(stock=round(reach(136.5, 64.0, d)[0], 3), v2=round(reach(G.L2, G.TOOL_REACH, d)[0], 3))
         for d in (255.0, 305.0, 355.0, 405.0)}
-    curves, fb = four_bar_force()
+    curves, fb = cutter_force()
     res["cutter"] = fb
+    band = 4.0 + 52.0 * math.tan(math.radians(G.BLADE_RAKE)) / 2
     for name, pts in curves.items():
-        res["cutter"][f"min_force_in_cut_N {name}"] = min(f for t, f in pts if -6 <= t <= 12)
+        res["cutter"][f"min_force_across_slot_N {name}"] = min(f for y, f in pts if -band <= y <= band)
+    res["suction"] = suction_and_slide()
     m = masses()
     res["mass"] = m
     res["loads"] = loads(m)

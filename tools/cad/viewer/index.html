@@ -89,7 +89,10 @@ function addGroup(title, gltf) {
 }
 
 function fit() {
-  const b = new THREE.Box3().setFromObject(root); const c = b.getCenter(new THREE.Vector3());
+  const b = new THREE.Box3();
+  root.traverse(o => { if (o.isMesh && isShown(o)) b.expandByObject(o); });
+  if (b.isEmpty()) b.setFromObject(root);
+  const c = b.getCenter(new THREE.Vector3());
   const r = b.getSize(new THREE.Vector3()).length() / 2;
   controls.target.copy(c);
   camera.position.copy(c).add(new THREE.Vector3(1.1, 0.75, 1.3).normalize().multiplyScalar(r * 2.6));

@@ -23,8 +23,8 @@ import shutil
 import sys
 from pathlib import Path
 
-from build123d import (Align, BuildSketch, Circle, Color, Compound, Cylinder, Box, Locations, Polygon, Pos,
-                       Rectangle, RegularPolygon, Rot, SlotCenterToCenter, export_gltf, export_step, export_stl,
+from build123d import (Align, BuildSketch, Circle, Color, Compound, Cylinder, Box, Locations, Plane, Polygon, Pos,
+                       Rectangle, RegularPolygon, Rot, SlotCenterToCenter, Sphere, export_gltf, export_step, export_stl,
                        extrude, make_hull, offset)
 
 sys.path.insert(0, str(Path(__file__).parent))
@@ -34,9 +34,10 @@ ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "cad" / "arm-v2"
 
 # PETG 1.27 g/cm3; printed parts are about 60% solid at 4-6 walls and 30-40% gyroid [assumed]
-DENSITY = {"PETG": 1.27 * 0.6, "PETG100": 1.27, "steel": 7.85, "foam": 0.05, "bought": None}
+DENSITY = {"PETG": 1.27 * 0.6, "PETG100": 1.27, "steel": 7.85, "foam": 0.05, "bought": None, "fruit": None}
 COLOR = {"PETG": Color(0.15, 0.45, 0.25), "PETG100": Color(0.15, 0.45, 0.25), "steel": Color(0.82, 0.83, 0.85),
-         "foam": Color(0.9, 0.85, 0.6), "bought": Color(0.2, 0.2, 0.22), "belt": Color(0.05, 0.05, 0.05)}
+         "foam": Color(0.9, 0.85, 0.6), "bought": Color(0.2, 0.2, 0.22), "belt": Color(0.05, 0.05, 0.05),
+         "fruit": Color(0.85, 0.12, 0.08)}
 PRINTED = ("PETG", "PETG100")
 
 
@@ -46,6 +47,9 @@ def cyl(r, z0, z1, x=0.0, y=0.0):
 
 
 def box(x0, x1, y0, y1, z0, z1):
+    x0, x1 = sorted((x0, x1))
+    y0, y1 = sorted((y0, y1))
+    z0, z1 = sorted((z0, z1))
     return Pos(x0, y0, z0) * Box(x1 - x0, y1 - y0, z1 - z0, align=(Align.MIN, Align.MIN, Align.MIN))
 
 
@@ -314,9 +318,9 @@ def j3_spindle():
     p = cyl(30.0, f0, f1) + cyl(10.0, f0 - 3.0, f0) + cyl(19.3, f1, G.J3_RADIAL_LO[0])
     p += cyl(17.5, G.J3_RADIAL_LO[0], G.J3_RADIAL_LO[1]) + cyl(15.0, G.J3_RADIAL_LO[1], top)
     p -= cyl(7.0, f0 - 5, top + 1)
-    for x, y in polar(4, 24.0, 0):
+    for x, y in polar(4, 24.0, 45):
         p -= cyl(G.INSERT_M4["hole"] / 2, f0 - 1, f1 + 0.01, x, y)
-    p -= cyl(2.0, f0 - 1, f0 + 4, 20 * math.cos(math.radians(45)), 20 * math.sin(math.radians(45)))
+    p -= cyl(2.0, f0 - 1, f0 + 4, 20.0, 0.0)
     for x, y in polar(4, 11.0, 45):
         p -= cyl(G.INSERT_M4["hole"] / 2, top - G.INSERT_M4["depth"], top + 1, x, y)
     return Pos(G.L2, 0, 0) * p
@@ -360,325 +364,332 @@ def belt(c1, r1, c2, r2, zmid, w=6.0, t=1.4):
     return outer - inner
 
 
-# ============================================================================ end effector (tool frame)
-def x_mouth():
-    t = math.tan(math.radians(G.V_HALF_ANGLE))
-    return G.THROAT_X + G.SLOT_LEN + (G.MOUTH_W / 2 - G.SLOT_W / 2) / t
+# ============================================================================ end effector v3 (tool frame)
+# A suction cup draws the fruit out of the cluster and up under the hood; the pedicel threads the hood slot; a
+# utility blade in a sliding carrier cuts it against a stainless edge just above the hood. Two servos, one vacuum
+# line. See docs/arm-v2-design.md section 5.
+CH_X = (-50.0, 76.0)
+CH_Y = 56.0
+CH_Z = (-6.0, 0.0)
+HANGERS = [(62.0, 74.0, 16.0, 22.0), (50.0, 60.0, -46.0, -40.0)]       # x0, x1, y0, y1: chassis down to the hood
+HOUSING = dict(x=(-44.0, 24.0), y=13.0, z=(-70.0, -50.0))              # LM8UU housing under the chassis
+BEARINGS_X = [(-40.0, -16.0), (-4.0, 20.0)]
+FLANGE_BOLTS = polar(4, 24.0, 45)                                      # M4 x 12 up into the J3 flange inserts
+STRIP_SCREWS = [(80.0, 23.0), (126.0, 23.0)]
+SLIDE_FACE_Z = -43.5          # slide servo (shaft down): output face
+CUT_FACE_Z = -21.0            # cutter servo (shaft up): output face; its tabs sit on the hood extension
+SLIDE_ARM_Z = (-58.0, -54.0)
+SLIDE_LINK_Z = (-53.0, -49.5)
+SLIDE_HORN_Z = (-49.0, -46.5)
+CARRIER_Z = (G.HOOD_TOP + G.SS_STRIP_T, G.HOOD_TOP + G.SS_STRIP_T + 6.0)   # rides on the steel strip and the land
+CUT_HORN_Z = (-15.5, -13.0)
+CUT_LINK_Z = (-12.5, -9.5)
 
 
-def v_outline(offset_=0.0):
-    """Slot + V opening, as a polygon open toward +x (beyond the tool), grown by `offset_`."""
-    hw = G.SLOT_W / 2 + offset_
-    x_v = G.THROAT_X + G.SLOT_LEN
-    t = math.tan(math.radians(G.V_HALF_ANGLE))
-    x_far = 170.0
-    pts = [(x_v, hw), (x_far, hw + (x_far - x_v) * t), (x_far, -hw - (x_far - x_v) * t), (x_v, -hw)]
-    with BuildSketch() as s:
-        Polygon(*pts, align=None)
-        with Locations((G.THROAT_X, 0)):
-            Rectangle(2 * G.SLOT_LEN + 0.2, 2 * hw, align=(Align.MIN, Align.CENTER))
-        with Locations((G.THROAT_X, 0)):
-            Circle(hw)
-    return s.sketch
-
-
-def blade_pts(p0, d, n, length):
-    """3-segment snap-off blade piece: edge from p0 along d, back edge w along n, ends slanted at the score angle.
-    The back edge is shifted toward -d, so both ends lean back from the edge."""
-    w = G.BLADE["w"]
-    sh = w / math.tan(math.radians(G.BLADE["score_deg"]))
-    e0 = p0
-    e1 = (p0[0] + length * d[0], p0[1] + length * d[1])
-    b1 = (e1[0] + w * n[0] - sh * d[0], e1[1] + w * n[1] - sh * d[1])
-    b0 = (e0[0] + w * n[0] - sh * d[0], e0[1] + w * n[1] - sh * d[1])
-    return [e0, e1, b1, b0]
-
-
-BLADE_LEN = G.BLADE["seg"] * G.BLADE["n"]
-
-
-def fixed_blade_pts():
-    """Fixed blade on the deck: edge along the +y side of the slot, front corner where the V starts."""
-    x1 = G.THROAT_X + G.SLOT_LEN
-    return blade_pts((x1 - BLADE_LEN, G.FIXED_EDGE_Y), (1.0, 0.0), (0.0, 1.0), BLADE_LEN)
-
-
-def lever_frame_vectors():
-    a = math.radians(G.EDGE_SLICE)
-    d = (math.cos(a), math.sin(a))
-    n = (math.sin(a), -math.cos(a))          # toward the back of the edge
-    return d, n
-
-
-def moving_blade_pts():
-    d, n = lever_frame_vectors()
-    s0, _ = G.EDGE_S
-    p0 = (G.EDGE_R + s0 * d[0], s0 * d[1])
-    return blade_pts(p0, d, n, BLADE_LEN)
-
-
-KEEPER_SCREWS = [(62.0, 25.5), (90.0, 25.5)]
-BASKET_SCREWS = [(48.0, 50.5), (48.0, -50.5), (100.0, 50.5), (100.0, -50.5), (41.2, 25.0), (41.2, -25.0)]
-CAMERA_SCREWS = [(40.0, 22.0), (48.0, 22.0)]
-POST_Y = 46.0
-POST_SCREWS = [(88.0, POST_Y), (88.0, -POST_Y)]
-SERVO_BRACKET_SCREWS = [(20.0, -61.0), (36.6, -61.0), (20.0, -2.3), (36.6, -2.3)]
-SERVO_TOP_Z = -2.5      # cutter servo case top, in a pocket under the deck; its output boss passes the deck
-
-
-def servo_footprint():
-    s = G.SERVO
-    x, y = G.SERVO_SHAFT
-    cy = y + (s["l"] / 2 - s["shaft_off"])
-    return x, cy
-
-
-def deck():
-    """Printed PETG, 6 mm, top face down on the bed. Carries everything; its V and slot guide the pedicel.
-    No screw heads stand above the top face inside the blade-lever's sweep: screws come from below."""
-    xm = x_mouth()
-    t = G.DECK_T
-    outline = hull_face([(0.0, 0.0, 36.0), (xm + 4, 31.0, 6.0), (xm + 4, -31.0, 6.0)],
-                        polys=[[(10, -62), (46, -62), (46, -53), (10, -53)],
-                               [(36, 53), (120, 53), (120, -53), (36, -53)]])
-    p = Pos(0, 0, -t) * extrude(outline, t)
-    p -= Pos(0, 0, -t - 1) * extrude(v_outline(), t + 2)
-    # under the fixed blade the slot edge steps back 0.6 mm, so the steel edge is the shear edge
-    p -= box(G.THROAT_X - 4.0, G.THROAT_X + G.SLOT_LEN + 0.5, 0.0, G.FIXED_EDGE_Y + 0.6, -t - 1, 1)
-    p -= Pos(0, 0, -G.BLADE["t"]) * extrude(poly_face(fixed_blade_pts()), G.BLADE["t"] + 1)   # fixed blade pocket
-    p -= cyl(10.1, -t - 1, 1)                                                  # flange spigot
-    for x, y in polar(4, 24.0, 0):
-        p -= cyl(2.25, -t - 1, 1, x, y) + cyl(4.2, -t - 1, -t + 2.0, x, y)     # M4 x 12 up into the flange inserts
-    p -= cyl(2.0, -t - 1, 1, 20 * math.cos(math.radians(45)), 20 * math.sin(math.radians(45)))
-    p -= cyl(G.INSERT_M4["hole"] / 2 - 0.4, -t - 1, 1, *G.PIVOT)              # blade pivot: M4 heat-set from below
-    p -= cyl(6.5, -t - 1, 1, *G.SERVO_SHAFT)                                  # cutter servo output boss
-    sx, sy = servo_footprint()
-    p -= box(sx - 10.2, sx + 10.2, sy - 20.7, sy + 20.7, -t - 1, SERVO_TOP_Z)   # servo case pocket
-    for x, y in KEEPER_SCREWS + CAMERA_SCREWS + POST_SCREWS:
-        p -= cyl(1.25, -t + 1.0, 1, x, y)                                     # M3 self-tap from above, blind
-    for x, y in BASKET_SCREWS + SERVO_BRACKET_SCREWS:
-        p -= cyl(1.25, -t - 1, -1.0, x, y)                                    # M3 self-tap from below, blind
-    p -= cyl(4.0, -t - 1, 1, 30.0, 30.0)                                      # tool cables down
-    return p
-
-
-def fixed_blade():
-    return Pos(0, 0, -G.BLADE["t"]) * extrude(poly_face(fixed_blade_pts()), G.BLADE["t"])
-
-
-def keeper():
-    """Printed PETG strip that clamps the fixed blade's back half to the deck (2 x M3 self-tap)."""
-    p = box(58.0, 94.0, 12.5, 29.0, 0.0, 3.0)
-    for x, y in KEEPER_SCREWS:
-        p -= cyl(1.7, -1, 4, x, y)
-    return p
-
-
-def blade_lever_parts():
-    """Printed blade-lever at angle 0, pivot at the origin (lever frame), and the blade in its underside pocket."""
-    d, n = lever_frame_vectors()
-    pts = moving_blade_pts()
-    e0, e1, b1, b0 = pts
-    ex = G.BLADE_EXPOSED
-
-    def mv(p, k):
-        return (p[0] + k * n[0], p[1] + k * n[1])
-    backing = [mv(e0, ex), mv(e1, ex), mv(b1, 2.0), mv(b0, 2.0)]
-    body = hull_face([(0, 0, 6.5)], polys=[backing])
-    ph = math.radians(G.LEVER_IN_PHASE)
-    q = (G.LEVER_IN_R * math.cos(ph), G.LEVER_IN_R * math.sin(ph))
-    arm = hull_face([(0, 0, 6.0), (q[0], q[1], 5.0)])
-    lever = extrude(body, G.LEVER_T) + extrude(arm, G.LEVER_T)
-    blade_face = poly_face(pts)
-    lever -= Pos(0, 0, -0.1) * extrude(blade_face, G.BLADE["t"] + 0.1)        # blade pocket on the underside
-    mid = [((e0[0] + b0[0]) / 2 * 0.5 + (e1[0] + b1[0]) / 2 * 0.5 + (k - 0.5) * 16 * d[0],
-            (e0[1] + b0[1]) / 2 * 0.5 + (e1[1] + b1[1]) / 2 * 0.5 + (k - 0.5) * 16 * d[1]) for k in (0, 1)]
-    for x, y in mid:
-        lever -= cyl(3.1, G.BLADE["t"] - 0.01, G.BLADE["t"] + 2.2, x, y)       # 6 x 2 magnets hold the blade
-    lever -= cyl(2.1, -1, G.LEVER_T + 1) + cyl(1.6, -1, G.LEVER_T + 1, *q)
-    blade = extrude(blade_face, G.BLADE["t"])
-    return lever, blade, q
-
-
-def lever_at(theta):
-    lever, blade, _ = blade_lever_parts()
-    t = Pos(G.PIVOT[0], G.PIVOT[1], 0) * Rot(0, 0, theta)
-    return t * lever, t * blade
-
-
-LINK_Z = (G.LEVER_T + 1.0, G.LEVER_T + 5.0)
-HORN_Z = (3.5, 6.0)
-
-
-def link_at(theta):
-    alpha, q = G.servo_angle_for_lever(theta)
-    h = (G.SERVO_SHAFT[0] + G.HORN_R * math.cos(math.radians(alpha)),
-         G.SERVO_SHAFT[1] + G.HORN_R * math.sin(math.radians(alpha)))
-    z0, z1 = LINK_Z
-    p = Pos(0, 0, z0) * extrude(hull_face([(h[0], h[1], 4.0), (q[0], q[1], 4.0)]), z1 - z0)
-    p -= cyl(1.6, z0 - 1, z1 + 1, *h) + cyl(1.6, z0 - 1, z1 + 1, *q)
-    horn = Pos(0, 0, HORN_Z[0]) * extrude(hull_face([(G.SERVO_SHAFT[0], G.SERVO_SHAFT[1], 5.0), (h[0], h[1], 3.5)]),
-                                          HORN_Z[1] - HORN_Z[0])
-    horn += cyl(4.5, SERVO_TOP_Z + 3.0, HORN_Z[0], *G.SERVO_SHAFT)
-    return p, horn
-
-
-def servo_body(x, y, top_z, yaw=0.0):
-    """Standard-size servo (MG996R / DS3225), output shaft at (x, y), case top at top_z, body below."""
+def servo_case(x, y, z_face, up=True, yaw=0.0):
+    """Standard servo (MG996R / DS3225MG): output shaft at (x, y), output face at z_face. Body runs toward local +x."""
     s = G.SERVO
     off = s["l"] / 2 - s["shaft_off"]
     b = box(-s["l"] / 2, s["l"] / 2, -s["w"] / 2, s["w"] / 2, -s["h"], 0)
     b += box(-s["tab_l"] / 2, s["tab_l"] / 2, -s["w"] / 2, s["w"] / 2, -s["h"] + s["tab_z"], -s["h"] + s["tab_z"] + s["tab_t"])
     b = Pos(off, 0, 0) * b
     b += cyl(6.0, 0, 3.0) + cyl(3.0, 3.0, 5.5)
-    return Pos(x, y, top_z) * Rot(0, 0, yaw) * b
+    if not up:
+        b = Rot(180, 0, 0) * b
+    return Pos(x, y, z_face) * Rot(0, 0, yaw) * b
 
 
-def cutter_servo_bracket():
-    """Printed PETG. Hangs the cutter servo under the deck by its tabs; 4 x M3 self-tap up into the deck."""
-    s = G.SERVO
-    x, cy = servo_footprint()
-    z_tab = SERVO_TOP_Z - s["h"] + s["tab_z"]
-    outer = box(x - 11.35, x + 11.3, cy - 31.5, cy + 31.5, z_tab - 4.0, -G.DECK_T)
-    inner = box(x - s["w"] / 2 - 0.3, x + s["w"] / 2 + 0.3, cy - s["l"] / 2 - 0.3, cy + s["l"] / 2 + 0.3, z_tab - 5, 0)
-    tabs = box(x - s["w"] / 2 - 0.3, x + s["w"] / 2 + 0.3, cy - s["tab_l"] / 2 - 0.3, cy + s["tab_l"] / 2 + 0.3,
-               z_tab, z_tab + s["tab_t"] + 0.3)
-    p = outer - inner - tabs
-    p -= box(x - 9, x + 9, cy - 26, cy + 26, z_tab + s["tab_t"] + 0.3, -G.DECK_T - 2.5)
-    for sx, sy in SERVO_BRACKET_SCREWS:
-        p -= cyl(1.7, z_tab - 10, -G.DECK_T + 1, sx, sy)
+def along_x(r, x0, x1, y=0.0, z=0.0):
+    return Pos(x0, y, z) * Rot(0, 90, 0) * Cylinder(r, x1 - x0, align=(Align.CENTER, Align.CENTER, Align.MIN))
+
+
+# ---------------------------------------------------------------------------- slide
+def slide_state(s):
+    """Cup face x, crank pin (x, y) and tab x for slide command s (0 retracted, 1 extended)."""
+    th = math.radians(180.0 * (1.0 - s))
+    sx, sy = G.SLIDE_SERVO
+    pin = (sx + G.SLIDE_CRANK_R * math.cos(th), sy + G.SLIDE_CRANK_R * math.sin(th))
+    cf = G.cup_face(s)
+    return cf, pin, cf - G.TAB_TO_CUP
+
+
+def cup_and_fitting(cf):
+    z = G.CUP_Z
+    p = along_x(G.CUP["d"] / 2, cf - 3, cf, z=z) + along_x(10.5, cf - 9, cf - 3, z=z)
+    p += along_x(12.0, cf - 13, cf - 9, z=z) + along_x(6.0, cf - G.CUP["h"], cf - 13, z=z)
+    p += along_x(G.CUP_FITTING["d"] / 2, cf - G.CUP["h"] - G.CUP_FITTING["l"], cf - G.CUP["h"], z=z)
     return p
 
 
-def basket():
-    """Printed PETG. Rear wall, two side walls and a top flange; front and floor open."""
-    x0, x1 = G.BASKET_IN_X
-    w, hw = G.BASKET_WALL, G.BASKET_IN_HALF_W
-    zb = G.PAD_TOP_Z - 10.0
-    zt = -G.DECK_T
-    p = box(x0 - w, x1 + 6, -hw - w, hw + w, zb, zt) - box(x0, x1 + 10, -hw, hw, zb - 1, zt + 1)
-    p += box(x0 - w, x1 + 6, hw, hw + 8, zt - 3, zt) + box(x0 - w, x1 + 6, -hw - 8, -hw, zt - 3, zt)
-    p += box(x0 - w, x0 + 6, -hw, hw, zt - 3, zt)
-    for xa, xb in ((x0 + 10, x0 + 40), (x0 + 50, x0 + 80)):     # side windows; lower 35 mm solid
-        p -= box(xa, xb, -hw - 5, hw + 5, -90.0, -20.0)
-    for x, y in BASKET_SCREWS:
-        p -= cyl(1.7, zt - 6, zt + 1, x, y)
-    for xk in (x0 + 4, x1 - 4):                                  # hinge knuckles for the door
-        p += Pos(xk, G.DOOR_HINGE[0], G.DOOR_HINGE[1]) * Rot(0, 90, 0) * Cylinder(4.0, 8.0)
-    p -= Pos(x0 - 10, G.DOOR_HINGE[0], G.DOOR_HINGE[1]) * Rot(0, 90, 0) * Cylinder(
-        1.6, 200, align=(Align.CENTER, Align.CENTER, Align.MIN))
-    p -= Pos(x0 - 10, G.DOOR_HINGE[0], G.DOOR_HINGE[1]) * Rot(0, 90, 0) * Cylinder(
-        7.5, 20, align=(Align.CENTER, Align.CENTER, Align.MIN))                 # door servo spline
-    p -= box(x0 - w - 1, x0 + 1, -6, 6, -100, -92)                              # fruit sensor window
+def cup_holder(cf):
+    """Printed PETG, 100%. Clamps the rod end, holds the cup fitting, and carries the slide arm and its pin."""
+    x0, x1 = cf - 41.0, cf - 29.0
+    z = G.CUP_Z
+    p = box(x0, x1, -10, 10, z - 10, z + 10)
+    p += box(x0, x1, -10, G.SLIDE_SERVO[1] + 4, *SLIDE_ARM_Z)
+    p -= along_x(4.1, x0 - 1, x0 + 10, z=z)                                   # rod, 10 mm deep (M3 grub screw)
+    p -= along_x(2.6, x1 - 8, x1 + 1, z=z)                                    # M5 cup stem: nut inside a slot
+    p -= box(x1 - 7, x1 - 3, -4.1, 4.1, z - 10, z + 0.1)                     # M5 nut slot, open below
+    p -= cyl(1.6, SLIDE_ARM_Z[0] - 1, SLIDE_ARM_Z[1] + 1, cf - G.TAB_TO_CUP, G.SLIDE_SERVO[1])
+    p -= cyl(1.6, z + 2, z + 11, x0 + 6, 0)                                    # grub screw onto the rod
     return p
 
 
-def door(open_deg=0.0):
-    """Printed PETG door plate, 10 mm EVA pad, 10 mm EVA lip strip glued on the front edge."""
-    x0, x1 = G.BASKET_IN_X
-    hw = G.BASKET_IN_HALF_W - 0.5
-    yh, zh = G.DOOR_HINGE
-    plate_top = G.PAD_TOP_Z - 10.0
-    d = box(x0 + 0.5, x1 - 0.5, -hw, hw - 4, plate_top - 3.0, plate_top)
-    d += box(x0 + 0.5, x1 - 0.5, hw - 6, yh, zh, plate_top)
-    d += Pos(x0 + 0.5, yh, zh) * Rot(0, 90, 0) * Cylinder(2.9, x1 - x0 - 1.0, align=(Align.CENTER, Align.CENTER, Align.MIN))
-    pad = box(x0 + 2, x1 - 7.0, -hw + 2, hw - 6, plate_top, G.PAD_TOP_Z)
-    lip = box(x1 - 6.5, x1 - 0.5, -hw, hw - 4, plate_top, G.LIP_TOP_Z)
-    d -= Pos(x0 - 5, yh, zh) * Rot(0, 90, 0) * Cylinder(1.7, 200, align=(Align.CENTER, Align.CENTER, Align.MIN))
-    for xk in (x0 + 4, x1 - 4):
-        d -= box(xk - 4.5, xk + 4.5, yh - 5, yh + 5, zh - 5, zh + 5)
-    rot = Pos(0, yh, zh) * Rot(open_deg, 0, 0) * Pos(0, -yh, -zh)
-    return rot * d, rot * pad, rot * lip
+def rod_and_bearings(cf):
+    x_front = cf - 31.0
+    rod = along_x(G.ROD["d"] / 2, x_front - G.ROD["l"], x_front, z=G.CUP_Z)
+    brg = None
+    for a, b in BEARINGS_X:
+        r = along_x(G.LM8UU["d"] / 2, a, b, z=G.CUP_Z) - along_x(4.0, a - 1, b + 1, z=G.CUP_Z)
+        brg = r if brg is None else brg + r
+    return rod, brg
 
 
-def door_servo_bracket():
-    """Printed PETG. Holds the door servo behind the rear wall, shaft on the hinge axis."""
-    x0 = G.BASKET_IN_X[0] - G.BASKET_WALL
-    yh, zh = G.DOOR_HINGE
+def slide_drive(s):
+    """Stock horn (crank, bought) and the printed link from the crank pin to the slide arm."""
+    cf, pin, tab = slide_state(s)
+    sx, sy = G.SLIDE_SERVO
+    horn = Pos(0, 0, SLIDE_HORN_Z[0]) * extrude(hull_face([(sx, sy, 5.0), (pin[0], pin[1], 3.5)]),
+                                                SLIDE_HORN_Z[1] - SLIDE_HORN_Z[0])
+    z0, z1 = SLIDE_LINK_Z
+    link = Pos(0, 0, z0) * extrude(hull_face([(pin[0], pin[1], 4.0), (tab, sy, 4.0)]), z1 - z0)
+    link -= cyl(1.6, z0 - 1, z1 + 1, *pin) + cyl(1.6, z0 - 1, z1 + 1, tab, sy)
+    return horn, link
+
+
+def slide_servo():
+    return servo_case(*G.SLIDE_SERVO, SLIDE_FACE_Z, up=False, yaw=180.0)
+
+
+def slide_servo_cradle():
+    """Printed PETG. A ledge under the slide servo's tabs and two side walls up to the chassis."""
     s = G.SERVO
+    sx, sy = G.SLIDE_SERVO
     off = s["l"] / 2 - s["shaft_off"]
-    zc = zh + off
-    za, zb = zc - s["tab_l"] / 2 - 2.0, zc + s["tab_l"] / 2 + 2.0
-    xb = x0 - 2.0 - s["h"] - 1.5
-    p = box(xb, x0, yh - 12.5, yh + 12.5, za, zb)
-    p -= box(xb + 1.5, x0 - 2.0 + 0.01, yh - s["w"] / 2 - 0.3, yh + s["w"] / 2 + 0.3, za + 1.5, zb - 1.5)
-    p -= box(xb - 1, xb + 2, yh - 7, yh + 7, za + 6, zb - 6)                     # cable exit
-    p -= box(x0 - 3, x0 + 1, yh - 7, yh + 7, zh - 7, zh + 7)                     # spline window
-    p += box(x0 - 6, x0, yh - 12.5, yh - 6.0, zb, -G.DECK_T)                     # strut up to the deck
+    cx = sx - off                                         # body centre (body runs toward -x)
+    tab_bot = SLIDE_FACE_Z + s["h"] - s["tab_z"] - s["tab_t"]
+    led = box(cx - s["tab_l"] / 2 - 3, cx + s["tab_l"] / 2 + 3, sy - s["w"] / 2 - 3, sy + s["w"] / 2 + 3, tab_bot - 4, tab_bot)
+    led -= box(cx - s["l"] / 2 - 0.3, cx + s["l"] / 2 + 0.3, sy - s["w"] / 2 - 0.3, sy + s["w"] / 2 + 0.3, tab_bot - 5, tab_bot + 1)
+    for dx in (-1, 1):
+        led -= cyl(1.25, tab_bot - 5, tab_bot + 1, cx + dx * (s["l"] / 2 + 4.5), sy)
+    walls = None
+    for dy in (-1, 1):
+        w = box(cx - s["tab_l"] / 2 - 3, cx + s["tab_l"] / 2 + 3, sy + dy * (s["w"] / 2 + 0.3),
+                sy + dy * (s["w"] / 2 + 5.3), tab_bot - 4, CH_Z[0])
+        walls = w if walls is None else walls + w
+    p = led + walls
+    for x, y in CRADLE_SCREWS:
+        p -= cyl(1.25, CH_Z[0] - 10, CH_Z[0] + 1, x, y)                    # M3 self-tap from the chassis
     return p
 
 
-def door_servo():
-    x0 = G.BASKET_IN_X[0] - G.BASKET_WALL
-    yh, zh = G.DOOR_HINGE
-    b = servo_body(0, 0, 0)
-    return Pos(x0 - 2.0, yh, zh) * Rot(0, 90, 0) * Rot(0, 0, 180) * b
+# ---------------------------------------------------------------------------- cutter
+def blade_pts(edge_y):
+    """Utility blade outline (x, y) for the edge at edge_y (at BLADE_X_MID). Edge first, then back."""
+    a = math.radians(G.BLADE_RAKE)
+    d = (math.cos(a), math.sin(a))
+    n = (math.sin(a), -math.cos(a))                       # toward the blade back (-y)
+    m = (G.BLADE_X_MID, edge_y)
+    e, bk, h = G.UTILITY_BLADE["edge"] / 2, G.UTILITY_BLADE["back"] / 2, G.UTILITY_BLADE["h"]
+    return [(m[0] - e * d[0], m[1] - e * d[1]), (m[0] + e * d[0], m[1] + e * d[1]),
+            (m[0] + bk * d[0] + h * n[0], m[1] + bk * d[1] + h * n[1]),
+            (m[0] - bk * d[0] + h * n[0], m[1] - bk * d[1] + h * n[1])]
 
 
-FORK_PIVOT = (56.0, -G.DECK_T - 4.0)
+def blade(c):
+    z0 = CARRIER_Z[0]
+    return Pos(0, 0, z0) * extrude(poly_face(blade_pts(G.blade_y(c))), G.UTILITY_BLADE["t"])
 
 
-def feeler_fork(lift=0.0):
-    """Printed PETG fork under the deck. The fruit shoulders lift it; its tail presses a micro switch."""
-    xp, zp = FORK_PIVOT
-    za, zt = -G.DECK_T - 3.0, -G.DECK_T - 0.5
-    p = box(49.5, 60.0, -20.0, 20.0, za - 4.5, zt)
-    for y0, y1 in ((9.0, 17.0), (-17.0, -9.0)):
-        p += box(60.0, 112.0, y0, y1, za, za + 2.5)
-    p += box(49.5, 53.5, -22.0, -20.0, -23.0, za - 4.5)
-    p += box(49.5, 53.5, -36.0, -20.0, -23.0, -19.0)
-    p -= Pos(xp, 0, zp) * Rot(90, 0, 0) * Cylinder(1.7, 60)
-    return Pos(xp, 0, zp) * Rot(0, -lift, 0) * Pos(-xp, 0, -zp) * p
+def carrier(c):
+    """Printed PETG, 100%. Holds the blade (pocket underneath, 2 x 6x2 magnets); slides across the slot on two
+    M4 shoulder bolts with OD 6 springs that press it flat on the steel strip."""
+    y = G.blade_y(c)
+    dy = y - G.BLADE_Y_OPEN
+    a = math.radians(G.BLADE_RAKE)
+    n = (math.sin(a), -math.cos(a))
+    pts = blade_pts(y)
+    k0, k1 = G.BLADE_EXPOSED, G.UTILITY_BLADE["h"] + 2.0
+    back = [(pts[0][0] + k0 * n[0], pts[0][1] + k0 * n[1]), (pts[1][0] + k0 * n[0], pts[1][1] + k0 * n[1])]
+    z0, z1 = CARRIER_Z
+    outline = hull_face([], polys=[back + [(148.0, -53.0 + dy), (60.0, -53.0 + dy), (60.0, -22.0 + dy), (148.0, -22.0 + dy)]])
+    p = Pos(0, 0, z0) * extrude(outline, z1 - z0)
+    p -= Pos(0, 0, z0 - 0.1) * extrude(poly_face(pts), G.UTILITY_BLADE["t"] + 0.1)
+    for f in (0.3, 0.7):                                                    # magnets over the blade body
+        mx = pts[0][0] + f * (pts[1][0] - pts[0][0]) + 10 * n[0]
+        my = pts[0][1] + f * (pts[1][1] - pts[0][1]) + 10 * n[1]
+        p -= cyl(3.1, z0 + G.UTILITY_BLADE["t"] - 0.01, z0 + G.UTILITY_BLADE["t"] + 2.2, mx, my)
+    for px, py in G.CARRIER_PINS:                                            # slots over the fixed pins
+        p -= slot_cut(px, py + dy, px, py + dy - 24.0, 4.4, z0 - 1, z1 + 1)
+    post = (G.CUT_SERVO[0], y + G.CARRIER_PIN_DY)
+    p += cyl(4.0, z1, CUT_LINK_Z[0] - 0.5, *post)
+    p -= cyl(1.6, z0 + 1, CUT_LINK_Z[1] + 1, *post)
+    return p
 
 
-def fork_hinge_blocks():
-    xp, zp = FORK_PIVOT
-    out = None
-    for s in (-1, 1):
-        b = box(xp - 4, xp + 4, s * 26.5 - 2.5, s * 26.5 + 2.5, zp - 5, -G.DECK_T)
-        b -= Pos(xp, 0, zp) * Rot(90, 0, 0) * Cylinder(1.6, 60)
-        out = b if out is None else out + b
-    return out
+def cut_drive(c):
+    th = math.radians(180.0 * (1.0 - c))
+    sx, sy = G.CUT_SERVO
+    pin = (sx + G.CUT_CRANK_R * math.sin(th), sy + G.CUT_CRANK_R * math.cos(th))
+    post = (sx, G.blade_y(c) + G.CARRIER_PIN_DY)
+    horn = Pos(0, 0, CUT_HORN_Z[0]) * extrude(hull_face([(sx, sy, 5.0), (pin[0], pin[1], 3.5)]), CUT_HORN_Z[1] - CUT_HORN_Z[0])
+    z0, z1 = CUT_LINK_Z
+    link = Pos(0, 0, z0) * extrude(hull_face([(pin[0], pin[1], 4.0), (post[0], post[1], 4.0)]), z1 - z0)
+    link -= cyl(1.6, z0 - 1, z1 + 1, *pin) + cyl(1.6, z0 - 1, z1 + 1, *post)
+    return horn, link
 
 
-def micro_switch(x_act, y, z_top):
-    """On-hand roller-lever micro switch (about 20 x 6.5 x 10 body); actuator at x_act, body toward +x."""
-    return (box(x_act - 2, x_act + 18, y - 3.25, y + 3.25, z_top - 10, z_top)
-            + box(x_act - 1.5, x_act + 1.5, y - 2, y + 2, z_top - 13, z_top - 10))
+def cut_servo():
+    return servo_case(*G.CUT_SERVO, CUT_FACE_Z, up=True, yaw=0.0)
 
 
-def ir_posts():
-    """Printed posts each side of the throat: 38 kHz IR LED one side, TSOP38238 the other."""
-    out = None
-    for y in (-POST_Y, POST_Y):
-        p = box(84.0, 92.0, y - 3.0, y + 3.0, 0.0, 14.0)
-        p -= Pos(88.0, y, 10.0) * Rot(90, 0, 0) * Cylinder(1.6, 10)
-        p -= cyl(1.7, -1, 6, 88.0, y)
-        out = p if out is None else out + p
-    return out
+def shear_strip():
+    """Stainless strip cut from the ruler on hand. The ruler's factory edge is the shear edge, on the slot side."""
+    x0, x1 = G.STRIP_X
+    p = box(x0, x1, G.SHEAR_EDGE_Y, G.SHEAR_EDGE_Y + 22.0, G.HOOD_TOP, G.HOOD_TOP + G.SS_STRIP_T)
+    for x, y in STRIP_SCREWS:
+        p -= cyl(1.65, G.HOOD_TOP - 1, G.HOOD_TOP + 2, x, y)
+    return p
+
+
+# ---------------------------------------------------------------------------- hood and chassis
+def slot_and_v():
+    """Slot (with the +y wall set 0.6 mm back under the steel edge) and the V mouth, as a 2D face."""
+    w = G.SLOT_W / 2
+    x0, x1 = G.SLOT_X
+    xf = G.HOOD_X[1]
+    with BuildSketch() as s:
+        with Locations((x0 + w, 0)):
+            Circle(w)
+        Polygon((x0 + w, -w), (x1, -w), (x1, w + 0.6), (x0 + w, w + 0.6), align=None)
+        Polygon((x1, -w), (xf + 1, -G.MOUTH_W / 2), (xf + 1, G.MOUTH_W / 2), (x1, w), align=None)
+    return s.sketch
+
+
+def hood():
+    """Printed PETG, bottom face down. The fruit is drawn up under it; its slot takes the pedicel. A 1 mm land on
+    the -y side carries the blade; the steel strip on the +y side is the shear edge. The front lip is chamfered
+    underneath so a fruit sitting a little high is pushed down, not caught."""
+    z0, z1 = G.HOOD_BOT, G.HOOD_TOP
+    x0, x1 = G.HOOD_X
+    y0, y1 = G.HOOD_Y
+    p = box(x0, x1, y0, y1, z0, z1) + box(48.0, x0 + 1, y0, -36.0, z0, z1) + box(88.0, 137.0, -78.0, y0 + 1, z0, z1)
+    p += box(64.0, 146.0, y0, -G.SLOT_W / 2 - 0.6, z1, z1 + G.SS_STRIP_T)                 # blade land
+    p -= Pos(0, 0, z0 - 1) * extrude(slot_and_v(), z1 - z0 + G.SS_STRIP_T + 2)
+    with BuildSketch(Plane.XZ) as s:                                                       # front chamfer underneath
+        Polygon((x1 - 10, z0 - 0.01), (x1 + 1, z0 - 0.01), (x1 + 1, z0 + 3), align=None)
+    p -= extrude(s.sketch, 200, both=True)
+    s_ = G.SERVO
+    cx = G.CUT_SERVO[0] + s_["l"] / 2 - s_["shaft_off"]
+    p -= box(cx - s_["l"] / 2 - 0.3, cx + s_["l"] / 2 + 0.3, G.CUT_SERVO[1] - s_["w"] / 2 - 0.3,
+             G.CUT_SERVO[1] + s_["w"] / 2 + 0.3, z0 - 1, z1 + 1)
+    for dx in (-1, 1):
+        p -= cyl(1.25, z0 - 1, z1 + 1, cx + dx * (s_["l"] / 2 + 4.5), G.CUT_SERVO[1])   # servo tab screws
+    for x, y in G.CARRIER_PINS:
+        p -= cyl(G.INSERT_M4["hole"] / 2, z0 - 1, z1 + 2, x, y)                          # M4 inserts from below
+    for x, y in STRIP_SCREWS:
+        p -= cyl(1.25, z0 + 1, z1 + 1, x, y)                                               # M3 self-tap, blind
+    for x0_, x1_, y0_, y1_ in HANGERS:
+        p -= cyl(1.7, z0 - 1, z1 + 1, (x0_ + x1_) / 2, (y0_ + y1_) / 2)
+    return p
+
+
+def chassis():
+    """Printed PETG, top face down on the bed. Bolts under the J3 flange; carries the hood hangers, the LM8UU
+    housing for the cup rod, and the camera bracket."""
+    z0, z1 = CH_Z
+    p = box(CH_X[0], CH_X[1], -CH_Y, CH_Y, z0, z1)
+    p -= cyl(10.1, z0 - 1, z1 + 1)                                         # flange spigot; hose and wires pass here
+    for x, y in FLANGE_BOLTS:
+        p -= cyl(2.25, z0 - 1, z1 + 1, x, y) + cyl(4.2, z0 - 1, z0 + 2.0, x, y)
+    p -= cyl(2.0, z1 - 4, z1 + 1, 20.0, 0.0)                               # dowel
+    for x0, x1, y0, y1 in HANGERS:
+        h = box(x0, x1, y0, y1, G.HOOD_TOP, z0 + 0.01)
+        h -= cyl(1.25, G.HOOD_TOP - 1, G.HOOD_TOP + 10, (x0 + x1) / 2, (y0 + y1) / 2)
+        p += h
+    hx, hy, hz = HOUSING["x"], HOUSING["y"], HOUSING["z"]
+    p += box(hx[0], hx[1], -6.0, 6.0, hz[1] - 0.01, z0 + 0.01) + box(hx[0], hx[1], -hy, hy, hz[0], hz[1])
+    p -= along_x(4.6, hx[0] - 1, hx[1] + 1, z=G.CUP_Z)
+    p -= along_x(G.LM8UU["d"] / 2 + 0.03, hx[0] - 1, BEARINGS_X[0][1], z=G.CUP_Z)
+    p -= along_x(G.LM8UU["d"] / 2 + 0.03, BEARINGS_X[1][0], hx[1] + 1, z=G.CUP_Z)
+    for x, y in CRADLE_SCREWS:
+        p -= cyl(1.7, z0 - 1, z1 + 1, x, y)                                # slide cradle screws
+    for x, y in CAMERA_SCREWS:
+        p -= cyl(1.25, z1 - 5, z1 + 1, x, y)
+    return p
+
+
+CAMERA_SCREWS = [(42.0, -12.0), (42.0, 12.0)]
+_CX = G.SLIDE_SERVO[0] - (G.SERVO["l"] / 2 - G.SERVO["shaft_off"])
+CRADLE_SCREWS = [(_CX + dx, G.SLIDE_SERVO[1] + dy * (G.SERVO["w"] / 2 + 2.8)) for dx in (-20.0, 20.0) for dy in (-1, 1)]
+CAMERA_POSE = (58.0, 0.0, 20.0)
 
 
 def camera_and_bracket():
     c = G.CAMERA
-    x_face, y_c, z_c = 72.0, 5.0, 36.0
-    place = Pos(x_face, y_c, z_c) * Rot(0, c["tilt"], 0)
-    cam = place * box(-c["d"], 0, -c["w"] / 2, c["w"] / 2, -c["h"] / 2, c["h"] / 2)
-    br = box(36.0, 52.0, 14.0, 32.0, 0.0, 4.0) + box(36.0, 52.0, 27.5, 32.0, 0.0, 30.0)
-    br += place * box(-c["d"] - 3.0, -c["d"], 0.0, c["w"] / 2 + 6.0, -c["h"] / 2, c["h"] / 2)
-    br += place * box(-c["d"] - 3.0, 0.0, c["w"] / 2 + 0.3, c["w"] / 2 + 6.0, -c["h"] / 2, c["h"] / 2)
+    place = Pos(*CAMERA_POSE) * Rot(0, c["tilt"], 0)
+    cam = place * (box(-c["d"], 0, -c["w"] / 2, c["w"] / 2, -c["h"] / 2, c["h"] / 2)
+                   + along_x(c["lens_d"] / 2, 0, c["lens_l"]))
+    br = box(36.0, 60.0, -18.0, 18.0, 0.0, 4.0)
+    br += place * box(-c["d"] - 3.0, -c["d"], -c["w"] / 2 - 2, c["w"] / 2 + 2, -c["h"] / 2 - 10, c["h"] / 2)
     for x, y in CAMERA_SCREWS:
         br -= cyl(1.7, -1, 6, x, y)
+    for dy in (-12.0, 12.0):                                               # M2 board screws
+        br -= place * along_x(1.1, -c["d"] - 4, -c["d"] + 1, y=dy, z=0)
     return cam, br
 
 
-def fruit_sensor():
-    x0 = G.BASKET_IN_X[0] - G.BASKET_WALL
-    return box(x0 - 6.0, x0 - 2.4, -10, 10, -104, -88)
+def slide_switch():
+    """Roller micro switch (on hand) on the housing; the slide arm presses it when fully retracted."""
+    hx1 = HOUSING["x"][1]
+    return box(hx1 - 20, hx1, 13.5, 20.0, -62.0, -52.0) + box(hx1, G.CUP_FACE_IN - 41.0 + 0.6, 14.0, 18.0,
+                                                               SLIDE_ARM_Z[0] + 0.5, SLIDE_ARM_Z[1] - 0.5)
+
+
+def ref_fruit(r, slide=0.0):
+    """Reference fruit of radius r held on the cup and seated on the hood (not a part)."""
+    zc = G.HOOD_BOT - r
+    cf = G.cup_face(slide)
+    xc = cf + math.sqrt(r * r - (G.CUP_Z - zc) ** 2)
+    return Pos(xc, 0, zc) * Sphere(r)
 
 
 def flange_stub():
-    """Reference only: the J3 tool flange the deck bolts to (tool frame)."""
+    """Reference only: the J3 tool flange the chassis bolts to (tool frame)."""
     return cyl(30.0, 0, G.J3_FLANGE[1] - G.J3_FLANGE[0])
+
+
+def build_tool(slide=0.0, cut=0.0, fruit=32.0):
+    """Tool parts at slide command `slide` and cutter command `cut` (0..1). Returns the list it added to PARTS."""
+    start = len(PARTS)
+    cf, _, _ = slide_state(slide)
+    add("T-01", "Tool chassis and LM8UU housing", chassis(), "tool", "PETG", "print top face down, 6 walls, 40% gyroid")
+    add("T-02", "Hood", hood(), "tool", "PETG", "print bottom face down, 6 walls, 50% gyroid")
+    add("T-03", "Blade carrier", carrier(cut), "tool", "PETG100", "print pocket up, 100%; 2 x 6x2 magnets")
+    hornc, linkc = cut_drive(cut)
+    add("T-04", "Cutter link 30 mm", linkc, "tool", "PETG100", "print flat, 100%")
+    add("T-05", "Cup holder and slide arm", cup_holder(cf), "tool", "PETG100", "print flat, 100%")
+    hs, ls = slide_drive(slide)
+    add("T-06", "Slide link 70 mm", ls, "tool", "PETG100", "print flat, 100%")
+    add("T-07", "Slide servo cradle", slide_servo_cradle(), "tool", "PETG", "print ledge down")
+    cam, br = camera_and_bracket()
+    add("T-08", "Camera bracket", br, "tool", "PETG", "print base down")
+    add("T-09", "Shear strip, 1 mm stainless", shear_strip(), "tool", "steel",
+        "cut from the stainless ruler on hand, factory edge on the slot side; drill 2 x 3.2")
+    add("BUY-20", "Utility blade (trapezoid, 61 mm)", blade(cut), "tool", "steel", "buy a pack", export=False)
+    add("BUY-21", "Suction cup 25 mm bellows + M5 fitting", cup_and_fitting(cf), "tool", "bought", "buy", export=False)
+    rod, brg = rod_and_bearings(cf)
+    add("BUY-22", "8 mm smooth rod, 160 mm", rod, "tool", "steel", "buy, cut to length", export=False)
+    add("BUY-23", "LM8UU x2", brg, "tool", "bought", "buy", qty=2, export=False)
+    add("BUY-24", "Slide servo MG996R", slide_servo(), "tool", "bought", "on hand", export=False)
+    add("BUY-25", "Cutter servo DS3225MG", cut_servo(), "tool", "bought", "buy (MG996R fits the same cutout)", export=False)
+    add("BUY-26", "Servo horns (stock single arm) x2", hs + hornc, "tool", "bought", "come with the servos", export=False)
+    add("BUY-27", "Slide-home micro switch", slide_switch(), "tool", "bought", "on hand", export=False)
+    add("BUY-28", "USB board camera, 32 mm", cam, "tool", "bought", "buy", export=False)
+    if fruit:
+        add("REF-1", f"Reference fruit, {2 * fruit:.0f} mm", ref_fruit(fruit, slide), "tool", "fruit", "not a part",
+            export=False)
+    return PARTS[start:]
 
 
 # ============================================================================ assembly
@@ -691,7 +702,7 @@ def add(pid, name, solid, frame, material, process, note="", qty=1, export=True)
     return solid
 
 
-def build_parts(lever_theta=G.LEVER_OPEN, door_open=0.0):
+def build_parts(slide=0.0, cut=0.0, fruit=32.0):
     PARTS.clear()
     # Arm 1
     add("A1-01", "Arm 1 tray", arm1_tray(), "arm1", "PETG", "print floor down, 5 walls, 35% gyroid")
@@ -729,35 +740,7 @@ def build_parts(lever_theta=G.LEVER_OPEN, door_open=0.0):
     add("BELT-3", "GT2 400 belt (J3)", belt((G.J3_MOTOR_X, 0), r20, (G.L2, 0), G.gt2_pitch_radius(90), G.J3_BELT_Z), "arm2",
         "belt", "on hand", export=False)
     # End effector
-    add("T-01", "Cutter deck", deck(), "tool", "PETG", "print top face down, 6 walls, 50% gyroid")
-    add("T-02", "Fixed-blade keeper", keeper(), "tool", "PETG", "print flat")
-    add("BUY-14", "Fixed blade: 18 mm snap-off blade, 3 segments", fixed_blade(), "tool", "steel", "buy, snap to length",
-        export=False)
-    lever, mblade = lever_at(lever_theta)
-    add("T-03", "Blade-lever", lever, "tool", "PETG100", "print blade pocket up, 100%; 2 x 6x2 magnets")
-    add("BUY-15", "Moving blade: 18 mm snap-off blade, 3 segments", mblade, "tool", "steel", "buy, snap to length",
-        export=False)
-    lk, horn = link_at(lever_theta)
-    add("T-04", "Link 40 mm", lk, "tool", "PETG100", "print flat, 100%")
-    add("BUY-08", "Servo horn (stock single arm)", horn, "tool", "bought", "comes with the servo", export=False)
-    add("BUY-09", "Cutter servo DS3225MG (or MG996R on hand)", servo_body(*G.SERVO_SHAFT, SERVO_TOP_Z, yaw=90.0), "tool",
-        "bought", "DS3225MG recommended; MG996R fits the same pocket", export=False)
-    add("T-05", "Cutter servo bracket", cutter_servo_bracket(), "tool", "PETG", "print")
-    add("T-06", "Basket", basket(), "tool", "PETG", "print rear wall down, 4 walls")
-    d, pad, lip = door(door_open)
-    add("T-07", "Door", d, "tool", "PETG", "print")
-    add("T-08", "Door pad 10 mm", pad, "tool", "foam", "cut from 10 mm EVA sheet", export=False)
-    add("T-09", "Door lip 10 mm", lip, "tool", "foam", "cut from 10 mm EVA sheet, glue on", export=False)
-    add("T-10", "Door servo bracket", door_servo_bracket(), "tool", "PETG", "print")
-    add("BUY-10", "Door servo MG996R", door_servo(), "tool", "bought", "on hand", export=False)
-    add("T-11", "Feeler fork", feeler_fork(), "tool", "PETG", "print")
-    add("T-12", "Fork hinge blocks", fork_hinge_blocks(), "tool", "PETG", "print", qty=2)
-    add("BUY-11", "Roller micro switch (feeler)", micro_switch(51.5, -32.75, -G.DECK_T), "tool", "bought", "on hand", export=False)
-    add("T-13", "IR posts", ir_posts(), "tool", "PETG", "print", qty=2)
-    cam, br = camera_and_bracket()
-    add("T-14", "Camera bracket", br, "tool", "PETG", "print")
-    add("BUY-12", "RGB-D camera (D405 class)", cam, "tool", "bought", "bill item 5.3", export=False)
-    add("BUY-13", "Fruit sensor TCRT5000", fruit_sensor(), "tool", "bought", "buy", export=False)
+    build_tool(slide, cut, fruit)
 
 
 def frame_transform(frame, j1=0.0, j2=-40.0, j3=35.0):

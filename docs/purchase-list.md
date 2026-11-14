@@ -1,6 +1,4 @@
-# Purchase list
-
-Prices are from the store pages on 14 Nov 2026, including GST.
+# Sensors and Compute purchase list
 
 | No. | Item | Store | Qty | Unit (₹) | Amount (₹) | Link |
 | --- | --- | --- | --- | --- | --- | --- |

@@ -7,4 +7,7 @@
 | 3 | Pro-Range 22.2 V 8000 mAh 25C 6S LiPo battery | Robu | 1 | 12,519 | 12,519 | https://robu.in/product/pro-range-8000mah-6s-25c-50c-lithium-polymer-battery-pack-lipo/ |
 | 4 | IMAX B6 charger/discharger, 1–6 cells, with 12 V 5 A adapter | Robu | 1 | 2,314 | 2,314 | https://robu.in/product/skyrc-imax-b6-50w-5a-chargerdischarger-1-6-cells-dc-5a-12v-60w-adapter-accopy/ |
 | 5 | DFRobot Fermion BNO055 9-axis IMU breakout | Robu | 2 | 1,946 | 3,892 | https://robu.in/product/df-robot-febno055-intelligent-9-axis-sensor-rmion-bno055-intelligent-9-axis-sensor-breakout/ |
-|  | **Total** |  |  |  | **1,31,164** |  |
+| 6 | Arducam OV9782 1MP colour global shutter USB camera (navigation) | Robu | 1 | 6,639 | 6,639 | https://robu.in/product/arducam-120fps-global-shutter-color-usb-camera-board-1mp-ov9782-uvc-webcam-module-with-low-distortion-m12-lens-without-microphones/ |
+| 7 | Arducam B0292 8MP IMX219 autofocus USB camera (arm top) | Robu | 1 | 3,869 | 3,869 | https://robu.in/product/arducam-b0292-8mp-a219-imx219-autofocus-usb-camera/ |
+| 8 | Waveshare OV5640 5MP USB camera, fixed focus (rear) | Robu | 1 | 4,069 | 4,069 | https://robu.in/product/waveshare-ov5640-5mp-usb-camera-1080p-video-recording-with-fixed-focus/ |
+|  | **Total** |  |  |  | **1,45,741** |  |

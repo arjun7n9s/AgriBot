@@ -36,6 +36,7 @@
   <h1 id="title">SCARA arm v2</h1>
   <div>Drag to orbit, right-drag to pan, scroll to zoom. Hover a part for its name; click to isolate.</div>
   <div class="grp"><button id="all">Show all</button><button id="fit">Fit view</button><button id="xray">X-ray</button></div>
+  <div class="grp"><label>Exploded view <input id="explode" type="range" min="0" max="100" value="0" style="width:100%"></label></div>
   <div id="groups"></div>
 </div>
 <div id="tip"></div>
@@ -122,6 +123,29 @@ document.getElementById("all").onclick = () => { for (const p of parts) { p.obj.
 document.getElementById("xray").onclick = () => { xray = !xray;
   root.traverse(o => { if (o.isMesh) { o.material.transparent = xray; o.material.opacity = xray ? 0.35 : 1;
     o.material.depthWrite = !xray; } }); };
+
+// Exploded view: every part moves away from the assembly centre, extra along the vertical axis so the stack separates.
+let explodeReady = false;
+function prepExplode() {
+  root.updateMatrixWorld(true);
+  const all = new THREE.Box3().setFromObject(root), C = all.getCenter(new THREE.Vector3());
+  const span = all.getSize(new THREE.Vector3()).length();
+  for (const p of parts) {
+    const c = new THREE.Box3().setFromObject(p.obj).getCenter(new THREE.Vector3());
+    const d = c.clone().sub(C); d.y *= 2.2;                     // glTF is Y up
+    p.base = p.obj.position.clone();
+    const par = p.obj.parent; par.updateMatrixWorld(true);
+    const inv = new THREE.Matrix4().extractRotation(par.matrixWorld).invert();
+    const sc = new THREE.Vector3().setFromMatrixScale(par.matrixWorld);
+    p.dir = d.multiplyScalar(0.6).applyMatrix4(inv).divide(sc);
+  }
+  explodeReady = true;
+}
+document.getElementById("explode").oninput = e => {
+  if (!explodeReady) prepExplode();
+  const k = e.target.value / 100;
+  for (const p of parts) p.obj.position.copy(p.base).addScaledVector(p.dir, k);
+};
 
 const ray = new THREE.Raycaster(); const mouse = new THREE.Vector2(); const tip = document.getElementById("tip");
 let hovered = null;

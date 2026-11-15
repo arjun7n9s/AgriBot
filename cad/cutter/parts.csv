@@ -3,6 +3,11 @@ C-01,Tool plate (bolts under the J3 coupler),PETG,1,34,84 x 84 x 12
 C-02,"Body: servo tower, blade deck, stem guide arms",PETG,1,43,147 x 84 x 48
 C-03,Blade lever,PETG100,1,6,57 x 24 x 6
 C-04,"Link, horn to lever",PETG100,1,2,36 x 19 x 5
+T-90,"Stand-in hook blade, 3 mm (test only, does not cut)",PETG100,1,4,72 x 40 x 3
+T-91,"Stand-in moving blade, 3 mm (test only, does not cut)",PETG100,1,4,63 x 32 x 3
+T-92,"Stand-in pivot bush, OD 16 x ID 8.2 (test only; use steel with the real blades)",PETG100,1,2,16 x 16 x 12
+T-93,"Stand-in drive pin, 4.9 x 8 (test only)",PETG100,1,0,5 x 5 x 8
+T-94,"Stand-in tail pin, 4.9 x 10 (test only)",PETG100,1,0,5 x 5 x 10
 BUY-30,"Pruner replacement blade set, 70 mm, 16 mm pivot hole (hook + moving blade)",steel,1,47,70 long
 BUY-31,Steel bush OD 16 x ID 8 x 11.9 mm (pivot sleeve),steel,1,14,
 BUY-32,"M8 x 35 button-head bolt (ISO 7380), 2 x M8 washer, M8 spring washer, M8 nyloc",steel,1,25,

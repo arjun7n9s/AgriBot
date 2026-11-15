@@ -10,6 +10,7 @@ Writes cad/cutter/:
     cutter_open.step / cutter_closed.step   the whole tool, tool frame, blades open / closed
     cutter_on_stock_arm.step                the tool under the stock J3 coupler, stock STEP frame (open)
     step/<part>.step, stl/<part>.stl        each printed part, in the tool frame (as assembled)
+    stl/test/<part>.stl                     printed stand-ins for the blades, bush and pins (test before they arrive)
     parts.csv                               part list with material, quantity and mass
     preview/*.glb                           coloured meshes for the renders and the web viewer (not committed)
 """
@@ -436,6 +437,18 @@ PRINTED = {
 }
 
 
+# Printed stand-ins so the tool can be assembled and run before the steel blades arrive. They have the same
+# outline and holes as the blades (as assumed in cutter_geometry.py). They move like the real set but do not cut.
+TEST_PARTS = {
+    "T-90": ("Stand-in hook blade, 3 mm (test only, does not cut)", lambda: fixed_blade()),
+    "T-91": ("Stand-in moving blade, 3 mm (test only, does not cut)", lambda: moving_blade(0.0)),
+    "T-92": ("Stand-in pivot bush, OD 16 x ID 8.2 (test only; use steel with the real blades)",
+             lambda: cyl(G.BUSH["od"] / 2, 0, G.BUSH["len"]) - cyl(4.1, -1, G.BUSH["len"] + 1)),
+    "T-93": ("Stand-in drive pin, 4.9 x 8 (test only)", lambda: cyl(2.45, 0, DRIVE_DOWEL_L)),
+    "T-94": ("Stand-in tail pin, 4.9 x 10 (test only)", lambda: cyl(2.45, 0, TAIL_DOWEL_L)),
+}
+
+
 def bought(theta):
     out = {"BUY-30a hook blade": fixed_blade(), "BUY-30b moving blade": moving_blade(theta),
            "BUY-33 drive dowel": drive_dowel(theta), "BUY-34 tail dowel": tail_dowel(),
@@ -514,6 +527,15 @@ def main():
                          size_mm=f"{bb.size.X:.0f} x {bb.size.Y:.0f} x {bb.size.Z:.0f}"))
         print(f"{pid}: {name}  {rows[-1]['size_mm']} mm  {rows[-1]['mass_g']} g")
 
+    (OUT / "stl" / "test").mkdir(exist_ok=True)
+    for pid, (name, fn) in TEST_PARTS.items():
+        shape = fn()
+        export_stl(shape, str(OUT / "stl" / "test" / f"{pid.lower()}.stl"), tolerance=0.02, angular_tolerance=0.1)
+        bb = shape.bounding_box()
+        rows.append(dict(id=pid, name=name, material="PETG100", qty=1, mass_g=round(volume_g(shape, "PETG100")),
+                         size_mm=f"{bb.size.X:.0f} x {bb.size.Y:.0f} x {bb.size.Z:.0f}"))
+        print(f"{pid}: {name}  {rows[-1]['size_mm']} mm")
+
     blades_g = round((fixed_blade().volume + moving_blade(0).volume) / 1000 * DENSITY["steel"])
     rows += [
         dict(id="BUY-30", name="Pruner replacement blade set, 70 mm, 16 mm pivot hole (hook + moving blade)",
@@ -539,7 +561,7 @@ def main():
         w = csv.DictWriter(f, fieldnames=["id", "name", "material", "qty", "mass_g", "size_mm"])
         w.writeheader()
         w.writerows(rows)
-    total = sum(r["mass_g"] for r in rows)
+    total = sum(r["mass_g"] for r in rows if not r["id"].startswith("T-"))
     print(f"tool mass about {total} g (estimate)")
 
     (OUT / "preview").mkdir(exist_ok=True)

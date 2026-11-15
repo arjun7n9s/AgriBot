@@ -176,6 +176,30 @@ The whole tool weighs about 250 g with the servo, blades and hardware [E]. The s
 - The servo torque is a datasheet figure.
 - The J2 fold against the Z column with this tool is not checked. The tool is shorter than the stock gripper, so it should be no worse.
 
+## 8b. Running it before the blades arrive
+
+Print the four parts in section 7, plus these stand-ins from `cad/cutter/stl/test/` (PETG, 100%, flat):
+
+| Id | Stand-in for |
+| --- | --- |
+| T-90 | Hook blade (same outline and holes, 3 mm) |
+| T-91 | Moving blade |
+| T-92 | Steel pivot bush (OD 16, ID 8.2) |
+| T-93 | Ø5 × 8 drive dowel |
+| T-94 | Ø5 × 10 tail dowel |
+
+The tool then assembles and runs exactly as it will with steel. That tests:
+- the mount on J3
+- servo travel and the horn angles
+- the linkage
+- the IR beam
+- the arm's approach to a stem
+
+The stand-in blades do not cut. When the steel set arrives:
+1. Measure it (section 9).
+2. Rebuild, and reprint the body if the numbers changed.
+3. Swap in the steel blades, bush and dowels.
+
 ## 9. When the blades arrive
 
 Measure, then update `cutter_geometry.py`, run `cutter_calcs.py --search` if the drive hole moved, rebuild and re-run the checks:

@@ -19,3 +19,5 @@ build/
 
 # GLB meshes written only for the arm v2 renders
 cad/arm-v2/preview/
+cad/cutter/preview/
+cad/cutter/solidworks/

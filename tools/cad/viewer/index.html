@@ -4,9 +4,11 @@
 <meta charset="utf-8">
 <title>AgriBOT SCARA arm v2</title>
 <!--
-  Local viewer for the arm v2 assembly. Serve the repo root and open /tools/cad/viewer/:
+  Local viewer. Serve the repo root and open /tools/cad/viewer/:
       .venv-cad/Scripts/python -m http.server 8765
-  Needs cad/arm-v2/preview/*.glb from build_arm_v2.py and export_stock_base.py.
+  /tools/cad/viewer/              arm v2 study: needs cad/arm-v2/preview/*.glb (build_arm_v2.py, export_stock_base.py)
+  /tools/cad/viewer/?set=cutter   stock arm with cutter v1: needs cad/cutter/preview/*.glb (build_cutter.py,
+                                  export_stock_arm.py)
 -->
 <style>
   html, body { margin: 0; height: 100%; font: 13px system-ui, sans-serif; background: #e9eaec; color: #222; overflow: hidden; }
@@ -31,7 +33,7 @@
 </head>
 <body>
 <div id="panel">
-  <h1>SCARA arm v2</h1>
+  <h1 id="title">SCARA arm v2</h1>
   <div>Drag to orbit, right-drag to pan, scroll to zoom. Hover a part for its name; click to isolate.</div>
   <div class="grp"><button id="all">Show all</button><button id="fit">Fit view</button><button id="xray">X-ray</button></div>
   <div id="groups"></div>
@@ -56,8 +58,17 @@ scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8f96, 1.6));
 const sun = new THREE.DirectionalLight(0xffffff, 1.8); sun.position.set(1, 2, 1.5); scene.add(sun);
 const fill = new THREE.DirectionalLight(0xffffff, 0.6); fill.position.set(-1.5, 0.5, -1); scene.add(fill);
 
-const files = [["Stock base, Z column and carriage (built)", "stock_base.glb"],
-               ["Arm v2 and cutter (to print)", "arm_v2.glb"]];
+const SETS = {
+  armv2: { title: "SCARA arm v2", dir: "../../../cad/arm-v2/preview/",
+           files: [["Stock base, Z column and carriage (built)", "stock_base.glb"],
+                   ["Arm v2 and cutter (to print)", "arm_v2.glb"]] },
+  cutter: { title: "Stock SCARA with cutter v1", dir: "../../../cad/cutter/preview/",
+            files: [["Stock SCARA (HowToMechatronics)", "stock_arm.glb"],
+                    ["Cutter v1, open, with a reference stem and tomato", "cutter_on_arm.glb"]] },
+};
+const set = SETS[new URLSearchParams(location.search).get("set")] || SETS.armv2;
+const files = set.files;
+document.title = "AgriBOT " + set.title; document.getElementById("title").textContent = set.title;
 const loader = new GLTFLoader();
 const root = new THREE.Group(); scene.add(root);
 const parts = [];          // { name, obj, group }
@@ -99,7 +110,7 @@ function fit() {
   camera.near = r / 100; camera.far = r * 50; camera.updateProjectionMatrix();
 }
 
-Promise.all(files.map(([t, f]) => loader.loadAsync("../../../cad/arm-v2/preview/" + f).then(g => [t, g])))
+Promise.all(files.map(([t, f]) => loader.loadAsync(set.dir + f).then(g => [t, g])))
   .then(list => { for (const [t, g] of list) addGroup(t, g); fit();
                   document.getElementById("status").textContent = `${parts.length} parts`; })
   .catch(e => { document.getElementById("status").textContent = "Load failed: " + e.message; console.error(e); });

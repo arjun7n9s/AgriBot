@@ -11,6 +11,7 @@ Writes cad/cutter/:
     cutter_on_stock_arm.step                the tool under the stock J3 coupler, stock STEP frame (open)
     step/<part>.step, stl/<part>.stl        each printed part, in the tool frame (as assembled)
     parts.csv                               part list with material, quantity and mass
+    preview/*.glb                           coloured meshes for the renders and the web viewer (not committed)
 """
 import csv
 import math
@@ -545,6 +546,15 @@ def main():
     for name, theta, fruit in (("open", 0.0, True), ("closed", G.CLOSED_DEG, False)):
         export_gltf(preview(theta, printed, fruit), str(OUT / "preview" / f"cutter_{name}.glb"), binary=True,
                     linear_deflection=0.05, angular_deflection=0.2)
+    place = Pos(*J3_STEP) * Rot(0, 0, ARM2_YAW)
+    kids = []
+    for k in preview(0.0, printed, True).children:          # place each part: glTF ignores a compound's own location
+        m = k.moved(place)
+        m.color = k.color
+        kids.append(m)
+    on_arm_preview = Compound(children=kids)
+    export_gltf(on_arm_preview, str(OUT / "preview" / "cutter_on_arm.glb"), binary=True,
+                linear_deflection=0.05, angular_deflection=0.2)
     export_step(assembly(0.0, printed), str(OUT / "cutter_open.step"))
     export_step(assembly(G.CLOSED_DEG, printed), str(OUT / "cutter_closed.step"))
     on_arm = Pos(*J3_STEP) * Rot(0, 0, ARM2_YAW) * assembly(0.0, printed)

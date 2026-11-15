@@ -9,7 +9,16 @@ Designed 15 Nov 2026 for the arm being built: the stock HowToMechatronics SCARA 
 
 Every number is tagged **[M]** measured (stock STEP or STL, a datasheet, the listing or a paper), **[A]** assumed (a design choice or an unchecked value) or **[E]** estimate (worked out or scaled from the photo; replace it with a measurement).
 
+![Cutter v1 on the stock SCARA](images/cutter_v1_on_arm.png)
+
 ![Cutter v1, open, with a reference stem and 60 mm tomato](images/cutter_v1.png)
+
+**Interactive 3D view:**
+1. Run `tools/cad/build_cutter.py` and `tools/cad/export_stock_arm.py`.
+2. Serve the repo root with `.venv-cad/Scripts/python -m http.server 8765` (or the `arm-viewer` preview).
+3. Open `http://localhost:8765/tools/cad/viewer/?set=cutter`.
+
+Hover over a part for its name, and click a part to show it alone.
 
 **Files:**
 - `tools/cad/cutter_geometry.py`: every number
@@ -18,6 +27,7 @@ Every number is tagged **[M]** measured (stock STEP or STL, a datasheet, the lis
 - `tools/cad/check_cutter.py`: collisions over the stroke, stem and fruit clearance, the IR beam, a full J3 turn under the stock Arm 2, print-bed fit
 - `tools/cad/sw_cutter.py`: brings the parts into SolidWorks through the solidworks-automation skill. It saves parts and assemblies in `cad/cutter/solidworks/` (not committed) and runs SolidWorks interference detection.
 - `tools/cad/render_cutter.py`: renders
+- `tools/cad/export_stock_arm.py`: exports the stock arm for the viewer and the on-arm render (third-party geometry, not committed)
 - Output in [cad/cutter](../cad/cutter):
   - `stl/`: the four printed parts, ready to slice
   - `step/`: the same parts as STEP

@@ -10,4 +10,5 @@
 | 6 | Arducam 2.3MP colour global shutter camera for Jetson Orin Nano/NX, MIPI CSI-2 (navigation) | Robu | 1 | 16,689 | 16,689 | https://robu.in/product/arducam-global-shutter-camera-module/ |
 | 7 | Logitech C920 HD Pro webcam, 1080p (arm top) | Amazon.in | 1 | 8,295 | 8,295 | https://www.amazon.in/dp/B006JH8T3S |
 | 8 | Logitech C270 HD webcam, 720p (rear) | Amazon.in | 1 | 2,180 | 2,180 | https://www.amazon.in/dp/B008QS9J6Y |
-|  | **Total** |  |  |  | **1,58,328** |  |
+| 9 | Foxin 512 GB NVMe M.2 2280 SSD, PCIe Gen3 x4 (Jetson storage) | Amazon.in | 1 | 7,899 | 7,899 | https://amzn.in/d/08EjRbmm |
+|  | **Total** |  |  |  | **1,66,227** |  |

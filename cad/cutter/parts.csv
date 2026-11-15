@@ -1,0 +1,15 @@
+id,name,material,qty,mass_g,size_mm
+C-01,Tool plate (bolts under the J3 coupler),PETG,1,34,84 x 84 x 12
+C-02,"Body: servo tower, blade deck, stem guide arms",PETG,1,43,147 x 84 x 48
+C-03,Blade lever,PETG100,1,6,57 x 24 x 6
+C-04,"Link, horn to lever",PETG100,1,2,36 x 19 x 5
+BUY-30,"Pruner replacement blade set, 70 mm, 16 mm pivot hole (hook + moving blade)",steel,1,47,70 long
+BUY-31,Steel bush OD 16 x ID 8 x 11.9 mm (pivot sleeve),steel,1,14,
+BUY-32,"M8 x 35 button-head bolt (ISO 7380), 2 x M8 washer, M8 spring washer, M8 nyloc",steel,1,25,
+BUY-33,Dowel pin 5 x 8 mm (lever to moving blade),steel,1,1,
+BUY-34,Dowel pin 5 x 10 mm (deck to hook blade tail),steel,1,2,
+BUY-35,Servo MG996R (on hand); DS3225MG drops in for more force,,1,55,40.7 x 19.7 x 37
+BUY-36,3 mm IR LED + 3 mm IR phototransistor (throat beam),,1,1,
+BUY-37,"M3 x 12 + M3 x 16 bolts, 2 x M3 nyloc (link pins)",steel,1,3,
+BUY-38,4 x M3 heat-set insert (5.7 long) + 4 x M3 x 10 (body to plate),,1,4,
+BUY-39,5 x M4 x 16 socket head + 5 x M4 nut (plate to J3 coupler),steel,1,10,

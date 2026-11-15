@@ -20,6 +20,8 @@ Read this first, then `README.md` and `docs/assets.md`.
 - The video, GIF and stills in `docs/media` are from 0.3.0. The 0.4.0 film caught other windows on the Ubuntu screen and was not used. Before re-filming, the Ubuntu desktop must show nothing but Gazebo; check the stills before publishing.
 - Run `tools/sim/ubuntu/stop.sh` before every run; stale nodes publish on the same topics. `tools/sim/ubuntu/sync.sh` copies the working tree to Ubuntu without committing.
 
+**Hardware (15 Nov 2026):** the arm being built is the stock HowToMechatronics SCARA (Link 1 printed). Arm v2 is a design study. The end effector is cutter v1 (`docs/cutter-v1-design.md`): CAD done with blade sizes scaled from a listing photo; re-measure when the blades arrive. Build it with `tools/cad/build_cutter.py`, check with `check_cutter.py`, and bring it into SolidWorks with `sw_cutter.py`.
+
 **Next:**
 1. **Ripeness.** A learned detector (for example YOLO on the 4060, trained on real photos) that tells ripe from half-ripe. Keep the `/fruit/detections` interface.
 2. **Pedicel accuracy.** Estimates are 6–24 mm off; the real throat is 6 mm. Detect the pedicel, or close in with the arm camera before cutting.

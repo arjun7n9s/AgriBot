@@ -2,7 +2,7 @@
 
     blender -b --factory-startup --python tools/cad/render_cutter.py
 
-Output: docs/images/cutter_v1_on_arm.png (on the stock SCARA), docs/images/cutter_v1.png (open, with a reference tomato), docs/images/cutter_v1_front.png (the jaws
+Output: docs/images/cutter_v1_parts.png (the printed parts, as on the bed), docs/images/cutter_v1_on_arm.png (on the stock SCARA), docs/images/cutter_v1.png (open, with a reference tomato), docs/images/cutter_v1_front.png (the jaws
 from the front, low), docs/images/cutter_v1_closed.png
 """
 import pathlib
@@ -42,6 +42,7 @@ def main():
     shot("cutter_open.glb", "cutter_v1_front.png", (1.5, 0.25, 0.12))
     shot("cutter_closed.glb", "cutter_v1_closed.png", (0.9, 1.2, 0.75))
     shot_on_arm("cutter_v1_on_arm.png", (1.1, -1.35, 0.55), 50)
+    shot("cutter_parts.glb", "cutter_v1_parts.png", (0.25, -1.3, 1.0), lens=60)
 
 
 if __name__ == "__main__":

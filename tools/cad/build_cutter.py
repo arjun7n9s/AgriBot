@@ -546,6 +546,17 @@ def main():
     for name, theta, fruit in (("open", 0.0, True), ("closed", G.CLOSED_DEG, False)):
         export_gltf(preview(theta, printed, fruit), str(OUT / "preview" / f"cutter_{name}.glb"), binary=True,
                     linear_deflection=0.05, angular_deflection=0.2)
+    # the four printed parts laid out flat, as they sit on the print bed
+    laid, x = [], 0.0
+    for pid in ("C-02", "C-01", "C-03", "C-04"):
+        shp = printed[pid] if pid in ("C-01", "C-02") else moving_printed(0.0)[pid]
+        bb = shp.bounding_box()
+        m = shp.moved(Pos(x - bb.min.X, -bb.center().Y, -bb.min.Z))
+        m.color = COLOR["petg"]
+        laid.append(m)
+        x += bb.size.X + 15.0
+    export_gltf(Compound(children=laid), str(OUT / "preview" / "cutter_parts.glb"), binary=True,
+                linear_deflection=0.05, angular_deflection=0.2)
     place = Pos(*J3_STEP) * Rot(0, 0, ARM2_YAW)
     kids = []
     for k in preview(0.0, printed, True).children:          # place each part: glTF ignores a compound's own location

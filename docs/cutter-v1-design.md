@@ -144,6 +144,8 @@ From the top:
 
 ## 7. Parts and printing
 
+![The four printed parts, as they sit on the bed: body, plate, lever, link](images/cutter_v1_parts.png)
+
 | Id | Part | Size, mm | Mass [E] | Print |
 | --- | --- | --- | --- | --- |
 | C-01 | Tool plate | 84 × 84 × 12 | 34 g | PETG, bottom face down, 5 walls, 40% gyroid |

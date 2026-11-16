@@ -7,8 +7,8 @@
 | 3 | Pro-Range 22.2 V 8000 mAh 25C 6S LiPo battery | Robu | 1 | 12,519 | 12,519 | https://robu.in/product/pro-range-8000mah-6s-25c-50c-lithium-polymer-battery-pack-lipo/ |
 | 4 | IMAX B6 charger/discharger, 1–6 cells, with 12 V 5 A adapter | Robu | 1 | 2,314 | 2,314 | https://robu.in/product/skyrc-imax-b6-50w-5a-chargerdischarger-1-6-cells-dc-5a-12v-60w-adapter-accopy/ |
 | 5 | DFRobot Fermion BNO055 9-axis IMU breakout | Robu | 2 | 1,946 | 3,892 | https://robu.in/product/df-robot-febno055-intelligent-9-axis-sensor-rmion-bno055-intelligent-9-axis-sensor-breakout/ |
-| 6 | Arducam 2.3MP colour global shutter camera for Jetson Orin Nano/NX, MIPI CSI-2 (navigation) | Robu | 1 | 16,689 | 16,689 | https://robu.in/product/arducam-global-shutter-camera-module/ |
-| 7 | Logitech C920 HD Pro webcam, 1080p (arm top) | Amazon.in | 1 | 8,295 | 8,295 | https://www.amazon.in/dp/B006JH8T3S |
+| 6 | Logitech C920 HD Pro webcam, 1080p (navigation) | Amazon.in | 1 | 8,295 | 8,295 | https://www.amazon.in/dp/B006JH8T3S |
+| 7 | Logitech Brio 100 Full HD 1080p webcam (arm top) | Amazon.in | 1 | 3,130 | 3,130 | https://www.amazon.in/dp/B0CHFM2KTR |
 | 8 | Logitech C270 HD webcam, 720p (rear) | Amazon.in | 1 | 2,180 | 2,180 | https://www.amazon.in/dp/B008QS9J6Y |
 | 9 | Foxin 512 GB NVMe M.2 2280 SSD, PCIe Gen3 x4 (Jetson storage) | Amazon.in | 1 | 7,899 | 7,899 | https://amzn.in/d/08EjRbmm |
-|  | **Total** |  |  |  | **1,66,227** |  |
+|  | **Total** |  |  |  | **1,52,668** |  |

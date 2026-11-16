@@ -25,6 +25,18 @@ JOBS = (("full", SRC / "scara_with_cutter_v1.step"), ("cutter_open", SRC / "cutt
         ("cutter_closed", SRC / "cutter_closed.step"))
 
 
+def crop_png(bmp):
+    """BMP -> PNG cropped to the model, so the pictures are not mostly empty background."""
+    from PIL import Image
+    im = Image.open(bmp).convert("RGB")
+    box = im.convert("L").point(lambda v: 255 if v < 200 else 0).getbbox()
+    if box:
+        p = 40
+        im = im.crop((max(box[0] - p, 0), max(box[1] - p, 0), min(box[2] + p, im.width), min(box[3] + p, im.height)))
+    im.save(bmp.with_suffix(".png"))
+    bmp.unlink()
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     with SolidWorksSession() as s:
@@ -34,7 +46,8 @@ def main():
             for v in VIEWS:
                 bmp = OUT / f"{name}_{v.strip('*').lower()}.bmp"
                 save_preview(model, bmp, v, 1800, 1200)
-                print(bmp.name)
+                crop_png(bmp)
+                print(bmp.with_suffix(".png").name)
             s.close(model)
 
 
